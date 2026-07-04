@@ -1,1 +1,5 @@
 .env
+.envrc
+bin/
+docs/references/**
+**/.DS_STORE

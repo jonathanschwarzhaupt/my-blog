@@ -11,3 +11,7 @@ Default label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `read
 ### Domain docs
 
 Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Coding standards
+
+Go/templ/templui conventions adapted from *Let's Go* and *Let's Go Further* by Alex Edwards (reference copies in `docs/references/`, gitignored). See `CODING_STANDARDS.md`.
