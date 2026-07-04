@@ -8,7 +8,6 @@ import (
 
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/validator"
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/pages/admin"
 )
 
@@ -30,8 +29,7 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
-	form.CheckField(validator.NotBlank(form.SoWhat), "so_what", "This field cannot be blank")
+	form.Validate()
 
 	slug := slugify(form.Title)
 	form.CheckField(slug != "", "title", "Title must contain at least one letter or number")

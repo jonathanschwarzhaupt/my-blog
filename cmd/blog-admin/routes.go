@@ -18,6 +18,8 @@ func (app *application) routes() http.Handler {
 
 	mux.Handle("GET /posts/new", dynamic.ThenFunc(app.postCreate))
 	mux.Handle("POST /posts", dynamic.ThenFunc(app.postCreatePost))
+	mux.Handle("GET /posts/{slug}/edit", dynamic.ThenFunc(app.postEdit))
+	mux.Handle("POST /posts/{slug}/edit", dynamic.ThenFunc(app.postUpdate))
 
 	standard := alice.New(app.recoverPanic, app.logRequest, commonHeaders)
 

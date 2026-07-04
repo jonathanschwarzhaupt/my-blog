@@ -5,12 +5,46 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
+// Version is only meaningful on the edit path (optimistic concurrency) — it's
+// decoded and ignored on the create path since InsertPost never reads it.
 type ComposeForm struct {
+	Version             int32  `form:"version"`
 	Title               string `form:"title"`
 	Body                string `form:"body"`
 	SoWhat              string `form:"so_what"`
 	Tags                string `form:"tags"`
 	validator.Validator `form:"-"`
+}
+
+// Validate runs the shared field checks for both the create and edit forms.
+func (f *ComposeForm) Validate() {
+	f.CheckField(validator.NotBlank(f.Title), "title", "This field cannot be blank")
+	f.CheckField(validator.NotBlank(f.SoWhat), "so_what", "This field cannot be blank")
+}
+
+templ formFields(form ComposeForm) {
+	<div>
+		<label>Title</label>
+		if err, ok := form.FieldErrors["title"]; ok {
+			<label class="error">{ err }</label>
+		}
+		<input type="text" name="title" value={ form.Title }/>
+	</div>
+	<div>
+		<label>Body</label>
+		<textarea name="body">{ form.Body }</textarea>
+	</div>
+	<div>
+		<label>So What</label>
+		if err, ok := form.FieldErrors["so_what"]; ok {
+			<label class="error">{ err }</label>
+		}
+		<input type="text" name="so_what" value={ form.SoWhat }/>
+	</div>
+	<div>
+		<label>Tags (comma-separated)</label>
+		<input type="text" name="tags" value={ form.Tags }/>
+	</div>
 }
 
 templ Compose(form ComposeForm, flash string) {
@@ -19,28 +53,7 @@ templ Compose(form ComposeForm, flash string) {
 			for _, err := range form.NonFieldErrors {
 				<div class="error">{ err }</div>
 			}
-			<div>
-				<label>Title</label>
-				if err, ok := form.FieldErrors["title"]; ok {
-					<label class="error">{ err }</label>
-				}
-				<input type="text" name="title" value={ form.Title }/>
-			</div>
-			<div>
-				<label>Body</label>
-				<textarea name="body">{ form.Body }</textarea>
-			</div>
-			<div>
-				<label>So What</label>
-				if err, ok := form.FieldErrors["so_what"]; ok {
-					<label class="error">{ err }</label>
-				}
-				<input type="text" name="so_what" value={ form.SoWhat }/>
-			</div>
-			<div>
-				<label>Tags (comma-separated)</label>
-				<input type="text" name="tags" value={ form.Tags }/>
-			</div>
+			@formFields(form)
 			<button type="submit">Publish</button>
 		</form>
 	}

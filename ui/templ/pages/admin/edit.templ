@@ -1,0 +1,20 @@
+package admin
+
+import (
+	"strconv"
+
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+)
+
+templ Edit(form ComposeForm, slug string, flash string) {
+	@layout.Base("Edit", flash) {
+		<form method="POST" action={ templ.URL("/posts/" + slug + "/edit") }>
+			for _, err := range form.NonFieldErrors {
+				<div class="error">{ err }</div>
+			}
+			<input type="hidden" name="version" value={ strconv.FormatInt(int64(form.Version), 10) }/>
+			@formFields(form)
+			<button type="submit">Update</button>
+		</form>
+	}
+}
