@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,6 +15,10 @@ type PoolConfig struct {
 }
 
 func OpenPool(ctx context.Context, dsn string, cfg PoolConfig) (*pgxpool.Pool, error) {
+	if cfg.MinConns > cfg.MaxConns {
+		return nil, fmt.Errorf("models: MinConns (%d) must not exceed MaxConns (%d)", cfg.MinConns, cfg.MaxConns)
+	}
+
 	poolCfg, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, err

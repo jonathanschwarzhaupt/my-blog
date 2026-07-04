@@ -17,6 +17,14 @@ func TestOpenPool_BadDSN(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestOpenPool_MinConnsExceedsMaxConns(t *testing.T) {
+	cfg := PoolConfig{MaxConns: 5, MinConns: 10, MaxConnIdleTime: time.Minute}
+
+	_, err := OpenPool(context.Background(), "postgres://irrelevant", cfg)
+
+	assert.NotNil(t, err)
+}
+
 func TestOpenPool_RealDatabase(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test in short mode")

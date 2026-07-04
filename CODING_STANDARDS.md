@@ -147,7 +147,7 @@ Holds plain domain structs (`Post`, `Project`, `Tag`) shaped for handlers/templa
 
 **Connection pool.** `internal/models` also keeps `OpenPool(ctx, dsn, cfg PoolConfig) (*pgxpool.Pool, error)` — the one piece of hand-written DB plumbing that isn't sqlc's concern. Always set explicit limits rather than relying on defaults (`MaxConns`, `MinConns`, `MaxConnIdleTime`, exposed as flags so they're tunable per binary without a rebuild). Verify the pool with a bounded `Ping` (~5s timeout) at startup — an unreachable DB should fail fast, not silently. Use Neon's **direct (unpooled)** connection string, not its PgBouncer pooler endpoint — both binaries are long-running processes managing their own pool, not serverless functions making one-shot connections.
 
-**Query timeouts.** Handlers create their own bounded context around each `app.db.*` call, not the bare inbound request context: `ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second); defer cancel()`.
+**Query timeouts.** Handlers create their own bounded context around each `app.db.*` call, parented on `context.Background()` rather than the inbound request context: `ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second); defer cancel()`. This deliberately decouples the write from the client's connection — an admin closing a tab or a flaky connection dropping mid-request shouldn't cancel a DB write that's already in flight.
 
 **Optimistic concurrency.** Since posts are freely editable, every mutable table gets a `version int NOT NULL DEFAULT 1` column to guard against lost updates from concurrent edits, expressed as a named sqlc query:
 

@@ -23,7 +23,7 @@ db/migrations/up: confirm ## apply all up migrations
 	go run ./cmd/migrate -db-dsn=${BLOG_DB_DSN} up
 
 .PHONY: db/migrations/down
-db/migrations/down: confirm ## apply all down migrations
+db/migrations/down: confirm ## revert the most recently applied migration (goose down reverts one step, not all)
 	go run ./cmd/migrate -db-dsn=${BLOG_DB_DSN} down
 
 .PHONY: db/migrations/status

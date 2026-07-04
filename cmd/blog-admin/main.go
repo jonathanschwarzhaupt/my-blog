@@ -10,12 +10,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/vcs"
 )
 
 type application struct {
 	logger *slog.Logger
+	pool   *pgxpool.Pool
 }
 
 func main() {
@@ -35,7 +38,10 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	pool, err := models.OpenPool(context.Background(), *dsn, models.PoolConfig{
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	pool, err := models.OpenPool(ctx, *dsn, models.PoolConfig{
 		MaxConns:        int32(*maxConns),
 		MinConns:        int32(*minConns),
 		MaxConnIdleTime: *maxConnIdleTime,
@@ -48,10 +54,8 @@ func main() {
 
 	app := &application{
 		logger: logger,
+		pool:   pool,
 	}
-
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
 
 	if err := serve(ctx, app, *addr); err != nil {
 		logger.Error(err.Error())

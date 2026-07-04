@@ -31,6 +31,11 @@ func main() {
 	}
 	defer db.Close()
 
+	if err := db.PingContext(context.Background()); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	goose.SetBaseFS(schema.FS)
 
 	if err := goose.SetDialect("postgres"); err != nil {
