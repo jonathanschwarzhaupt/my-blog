@@ -31,6 +31,12 @@ func TestPostEdit_LoadsExistingPost(t *testing.T) {
 				Version: 3,
 			}, nil
 		},
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
+		GetProjectsForPostFunc: func(ctx context.Context, postID int64) ([]database.Project, error) {
+			return nil, nil
+		},
 	}
 
 	app := newTestApplicationWithDB(mockDB)
@@ -79,6 +85,9 @@ func TestPostUpdate_Valid(t *testing.T) {
 				Version: arg.Version + 1,
 			}, nil
 		},
+		DeletePostProjectsFunc: func(ctx context.Context, postID int64) error {
+			return nil
+		},
 	}
 
 	app := newTestApplicationWithDB(mockDB)
@@ -126,6 +135,9 @@ func TestPostUpdate_StaleVersionConflict(t *testing.T) {
 		UpdatePostFunc: func(ctx context.Context, arg database.UpdatePostParams) (database.Post, error) {
 			updateCallCount++
 			return database.Post{}, pgx.ErrNoRows
+		},
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
 		},
 	}
 

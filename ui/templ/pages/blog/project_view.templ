@@ -1,0 +1,23 @@
+package blog
+
+import (
+	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+)
+
+templ ProjectView(project models.Project, posts []models.Post) {
+	@layout.Base(project.Name, "") {
+		<article>
+			<h1>{ project.Name }</h1>
+			<p>{ project.Description }</p>
+			<ol>
+				for _, post := range posts {
+					<li>
+						<a href={ templ.URL("/posts/" + post.Slug) }>{ post.Title }</a>
+						<p>{ post.SoWhat }</p>
+					</li>
+				}
+			</ol>
+		</article>
+	}
+}

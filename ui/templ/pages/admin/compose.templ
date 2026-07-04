@@ -1,6 +1,10 @@
 package admin
 
 import (
+	"slices"
+	"strconv"
+
+	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/validator"
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
@@ -8,11 +12,12 @@ import (
 // Version is only meaningful on the edit path (optimistic concurrency) — it's
 // decoded and ignored on the create path since InsertPost never reads it.
 type ComposeForm struct {
-	Version             int32  `form:"version"`
-	Title               string `form:"title"`
-	Body                string `form:"body"`
-	SoWhat              string `form:"so_what"`
-	Tags                string `form:"tags"`
+	Version             int32   `form:"version"`
+	Title               string  `form:"title"`
+	Body                string  `form:"body"`
+	SoWhat              string  `form:"so_what"`
+	Tags                string  `form:"tags"`
+	ProjectIDs          []int64 `form:"project_ids"`
 	validator.Validator `form:"-"`
 }
 
@@ -47,13 +52,33 @@ templ formFields(form ComposeForm) {
 	</div>
 }
 
-templ Compose(form ComposeForm, flash string) {
+templ projectCheckboxes(allProjects []models.Project, form ComposeForm) {
+	if len(allProjects) > 0 {
+		<fieldset>
+			<legend>Projects</legend>
+			for _, p := range allProjects {
+				<label>
+					<input
+						type="checkbox"
+						name="project_ids"
+						value={ strconv.FormatInt(p.ID, 10) }
+						checked?={ slices.Contains(form.ProjectIDs, p.ID) }
+					/>
+					{ p.Name }
+				</label>
+			}
+		</fieldset>
+	}
+}
+
+templ Compose(form ComposeForm, allProjects []models.Project, flash string) {
 	@layout.Base("Compose", flash) {
 		<form method="POST" action="/posts">
 			for _, err := range form.NonFieldErrors {
 				<div class="error">{ err }</div>
 			}
 			@formFields(form)
+			@projectCheckboxes(allProjects, form)
 			<button type="submit">Publish</button>
 		</form>
 	}

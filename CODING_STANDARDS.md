@@ -195,6 +195,8 @@ RETURNING *;
 
 `pgx.ErrNoRows` from that call means the record was edited or deleted since it was loaded — the handler maps this to `models.ErrEditConflict` and returns `409 Conflict`, never a silent overwrite.
 
+**Projects (many-to-many with Posts).** `post_projects` is a plain join table (`post_id`, `project_id`, composite PK, both columns `ON DELETE CASCADE`) — no ORM-style association helpers. Projects are never inferred or auto-created from a Post's tags; `blog-admin` only ever assigns a Post to a Project that already exists. Two small helpers in `cmd/blog-admin/project.go` enforce this without a database transaction: `validateProjectIDs` checks every submitted project id against `GetProjectsByIDs` *before* any write, recording a form error if one doesn't exist; `syncPostProjects` then does `DeletePostProjects` + re-`InsertPostProject` per id (replace-all-associations, not a diff) immediately after the Post itself is saved. This isn't wrapped in a transaction with the Post write — see the comment on `syncPostProjects` for why that's an accepted trade-off for a single-admin tool. Foreign-key violations on `post_projects.project_id` (Postgres code `23503`) map to `models.ErrInvalidProject` in `WrapDBError`, alongside the existing unique-violation → `ErrDuplicateSlug` case.
+
 ### Migrations (goose)
 
 Single-file migrations under `sql/schema/`, sequentially numbered (`00001_create_posts_table.sql`), each containing `-- +goose Up` / `-- +goose Down` sections — this directory is the single source of schema truth and is committed to version control (not gitignored, unlike `docs/references/`). Conventions: `bigint GENERATED ALWAYS AS IDENTITY` for primary keys, `NOT NULL` + a sensible `DEFAULT` on every column, `text` instead of `varchar(n)`, `CHECK` constraints for business rules, `IF EXISTS`/`IF NOT EXISTS` guards throughout.
@@ -203,7 +205,7 @@ Single-file migrations under `sql/schema/`, sequentially numbered (`00001_create
 
 ## Filtering, sorting, pagination
 
-Applies to any listing endpoint (`blog`'s home page / Project page, `blog-admin`'s post list):
+Aspirational — not implemented yet. `blog`'s home page, feed, Project page, and Projects index all currently fetch and render every row unpaginated (a deliberate, accepted trade-off given the blog's small scale); apply the pattern below once post/project volume actually warrants it, to any listing endpoint (`blog`'s home page / Project page, `blog-admin`'s post list):
 
 - Shared `Filters` struct (`Page`, `PageSize`, `Sort`, `SortSafelist []string`), validated: `Page` capped well below any realistic post count, `PageSize` capped at 100, `Sort` checked against `SortSafelist` via `validator.PermittedValue`.
 - **Never interpolate raw sort input into SQL.** The only place `fmt.Sprintf` is acceptable for building a query is injecting a column/direction that has already been checked against `SortSafelist` — placeholders can't parameterize identifiers.

@@ -1,0 +1,20 @@
+package blog
+
+import (
+	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+)
+
+templ ProjectsIndex(projects []models.Project) {
+	@layout.Base("Projects", "") {
+		<h1>Projects</h1>
+		<ul>
+			for _, project := range projects {
+				<li>
+					<a href={ templ.URL("/projects/" + project.Slug) }>{ project.Name }</a>
+					<p>{ project.Description }</p>
+				</li>
+			}
+		</ul>
+	}
+}

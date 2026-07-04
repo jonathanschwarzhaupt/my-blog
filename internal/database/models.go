@@ -18,3 +18,21 @@ type Post struct {
 	Version     int32
 	PublishedAt pgtype.Timestamptz
 }
+
+type PostProject struct {
+	PostID    int64
+	ProjectID int64
+}
+
+type Project struct {
+	ID          int64
+	Name        string
+	Slug        string
+	Description string
+}
+
+type Session struct {
+	Token  string
+	Data   []byte
+	Expiry pgtype.Timestamptz
+}

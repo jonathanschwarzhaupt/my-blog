@@ -20,6 +20,9 @@ func TestPostCreatePost_Valid(t *testing.T) {
 	var gotParams database.InsertPostParams
 
 	mockDB := &mocks.MockQuerier{
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
 		InsertPostFunc: func(ctx context.Context, arg database.InsertPostParams) (database.Post, error) {
 			gotParams = arg
 			return database.Post{
@@ -31,6 +34,9 @@ func TestPostCreatePost_Valid(t *testing.T) {
 				Tags:    arg.Tags,
 				Version: 1,
 			}, nil
+		},
+		DeletePostProjectsFunc: func(ctx context.Context, postID int64) error {
+			return nil
 		},
 	}
 
@@ -70,6 +76,9 @@ func TestPostCreatePost_BlankSoWhat(t *testing.T) {
 	insertCalled := false
 
 	mockDB := &mocks.MockQuerier{
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
 		InsertPostFunc: func(ctx context.Context, arg database.InsertPostParams) (database.Post, error) {
 			insertCalled = true
 			return database.Post{}, nil
@@ -106,6 +115,9 @@ func TestPostCreatePost_CrossOriginRejected(t *testing.T) {
 	insertCalled := false
 
 	mockDB := &mocks.MockQuerier{
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
 		InsertPostFunc: func(ctx context.Context, arg database.InsertPostParams) (database.Post, error) {
 			insertCalled = true
 			return database.Post{}, nil
@@ -143,6 +155,9 @@ func TestPostCreatePost_EmptyTitleSlug(t *testing.T) {
 	insertCalled := false
 
 	mockDB := &mocks.MockQuerier{
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
 		InsertPostFunc: func(ctx context.Context, arg database.InsertPostParams) (database.Post, error) {
 			insertCalled = true
 			return database.Post{}, nil
@@ -179,6 +194,9 @@ func TestPostCreatePost_DuplicateSlug(t *testing.T) {
 	insertCallCount := 0
 
 	mockDB := &mocks.MockQuerier{
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
 		InsertPostFunc: func(ctx context.Context, arg database.InsertPostParams) (database.Post, error) {
 			insertCallCount++
 			return database.Post{}, &pgconn.PgError{Code: "23505"}

@@ -1,0 +1,34 @@
+package admin
+
+import (
+	"github.com/jonathanschwarzhaupt/my-blog/internal/validator"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+)
+
+type ProjectForm struct {
+	Name                string `form:"name"`
+	Description         string `form:"description"`
+	validator.Validator `form:"-"`
+}
+
+templ ProjectCreate(form ProjectForm, flash string) {
+	@layout.Base("New Project", flash) {
+		<form method="POST" action="/projects">
+			for _, err := range form.NonFieldErrors {
+				<div class="error">{ err }</div>
+			}
+			<div>
+				<label>Name</label>
+				if err, ok := form.FieldErrors["name"]; ok {
+					<label class="error">{ err }</label>
+				}
+				<input type="text" name="name" value={ form.Name }/>
+			</div>
+			<div>
+				<label>Description</label>
+				<textarea name="description">{ form.Description }</textarea>
+			</div>
+			<button type="submit">Create Project</button>
+		</form>
+	}
+}

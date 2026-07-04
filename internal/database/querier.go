@@ -9,9 +9,17 @@ import (
 )
 
 type Querier interface {
+	DeletePostProjects(ctx context.Context, postID int64) error
 	GetPost(ctx context.Context, slug string) (Post, error)
+	GetProjectBySlug(ctx context.Context, slug string) (Project, error)
+	GetProjectsByIDs(ctx context.Context, ids []int64) ([]Project, error)
+	GetProjectsForPost(ctx context.Context, postID int64) ([]Project, error)
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
+	InsertPostProject(ctx context.Context, arg InsertPostProjectParams) error
+	InsertProject(ctx context.Context, arg InsertProjectParams) (Project, error)
 	ListPosts(ctx context.Context) ([]Post, error)
+	ListPostsByProjectSlug(ctx context.Context, slug string) ([]Post, error)
+	ListProjects(ctx context.Context) ([]Project, error)
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
 }
 

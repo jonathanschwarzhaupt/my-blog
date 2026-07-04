@@ -19,6 +19,11 @@ func TestWrapDBError_UniqueViolation(t *testing.T) {
 	assert.Equal(t, WrapDBError(pgErr), ErrDuplicateSlug)
 }
 
+func TestWrapDBError_ForeignKeyViolation(t *testing.T) {
+	pgErr := &pgconn.PgError{Code: "23503"}
+	assert.Equal(t, WrapDBError(pgErr), ErrInvalidProject)
+}
+
 func TestWrapDBError_OtherError(t *testing.T) {
 	original := errors.New("some other db error")
 	assert.Equal(t, WrapDBError(original), original)

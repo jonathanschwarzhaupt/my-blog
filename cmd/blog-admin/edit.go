@@ -29,16 +29,33 @@ func (app *application) postEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	allProjects, ok := app.listProjectsOrServerError(ctx, w, r)
+	if !ok {
+		return
+	}
+
+	currentProjects, err := app.db.GetProjectsForPost(ctx, dbPost.ID)
+	if err != nil {
+		app.serverError(w, r, models.WrapDBError(err))
+		return
+	}
+
+	currentProjectIDs := make([]int64, len(currentProjects))
+	for i, p := range currentProjects {
+		currentProjectIDs[i] = p.ID
+	}
+
 	form := admin.ComposeForm{
-		Version: dbPost.Version,
-		Title:   dbPost.Title,
-		Body:    dbPost.Body,
-		SoWhat:  dbPost.SoWhat,
-		Tags:    strings.Join(dbPost.Tags, ", "),
+		Version:    dbPost.Version,
+		Title:      dbPost.Title,
+		Body:       dbPost.Body,
+		SoWhat:     dbPost.SoWhat,
+		Tags:       strings.Join(dbPost.Tags, ", "),
+		ProjectIDs: currentProjectIDs,
 	}
 
 	flash := app.sessionManager.PopString(r.Context(), "flash")
-	app.render(w, r, http.StatusOK, admin.Edit(form, slug, flash))
+	app.render(w, r, http.StatusOK, admin.Edit(form, slug, allProjects, flash))
 }
 
 func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
@@ -57,13 +74,24 @@ func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
 
 	form.Validate()
 
-	if !form.Valid() {
-		app.render(w, r, http.StatusUnprocessableEntity, admin.Edit(form, slug, ""))
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
+
+	if form.Valid() {
+		if err := app.validateProjectIDs(ctx, &form); err != nil {
+			app.serverError(w, r, models.WrapDBError(err))
+			return
+		}
+	}
+
+	if !form.Valid() {
+		allProjects, ok := app.listProjectsOrServerError(ctx, w, r)
+		if !ok {
+			return
+		}
+		app.render(w, r, http.StatusUnprocessableEntity, admin.Edit(form, slug, allProjects, ""))
+		return
+	}
 
 	// Look up the post by the URL's slug to get its authoritative ID — never
 	// trust a client-submitted id for which row to write to. This also means
@@ -96,7 +124,26 @@ func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
 			form.Version = dbPost.Version // refresh so a retry submits the current version
 			form.AddNonFieldError("This post was edited elsewhere since you loaded it — review the current version below and try again.")
 			app.logger.Info(models.ErrEditConflict.Error(), "method", r.Method, "uri", r.URL.RequestURI())
-			app.render(w, r, http.StatusConflict, admin.Edit(form, slug, ""))
+			allProjects, ok := app.listProjectsOrServerError(ctx, w, r)
+			if !ok {
+				return
+			}
+			app.render(w, r, http.StatusConflict, admin.Edit(form, slug, allProjects, ""))
+			return
+		}
+		app.serverError(w, r, err)
+		return
+	}
+
+	if err := app.syncPostProjects(ctx, dbPost.ID, form.ProjectIDs); err != nil {
+		err = models.WrapDBError(err)
+		if errors.Is(err, models.ErrInvalidProject) {
+			form.AddNonFieldError("The post was saved, but one or more selected projects no longer exist — please re-select and try again.")
+			allProjects, ok := app.listProjectsOrServerError(ctx, w, r)
+			if !ok {
+				return
+			}
+			app.render(w, r, http.StatusUnprocessableEntity, admin.Edit(form, slug, allProjects, ""))
 			return
 		}
 		app.serverError(w, r, err)

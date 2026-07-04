@@ -8,12 +8,16 @@ import (
 )
 
 var (
-	ErrNoRecord      = errors.New("models: no matching record found")
-	ErrEditConflict  = errors.New("models: edit conflict")
-	ErrDuplicateSlug = errors.New("models: a post with this slug already exists")
+	ErrNoRecord       = errors.New("models: no matching record found")
+	ErrEditConflict   = errors.New("models: edit conflict")
+	ErrDuplicateSlug  = errors.New("models: a post with this slug already exists")
+	ErrInvalidProject = errors.New("models: a referenced project no longer exists")
 )
 
-const pgUniqueViolationCode = "23505"
+const (
+	pgUniqueViolationCode     = "23505"
+	pgForeignKeyViolationCode = "23503"
+)
 
 // WrapDBError translates Postgres/pgx-specific errors into models sentinel
 // errors, so callers check against these instead of driver-specific types.
@@ -27,8 +31,13 @@ func WrapDBError(err error) error {
 	}
 
 	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == pgUniqueViolationCode {
-		return ErrDuplicateSlug
+	if errors.As(err, &pgErr) {
+		switch pgErr.Code {
+		case pgUniqueViolationCode:
+			return ErrDuplicateSlug
+		case pgForeignKeyViolationCode:
+			return ErrInvalidProject
+		}
 	}
 
 	return err
