@@ -12,7 +12,7 @@ help: ## print this help message
 
 .PHONY: run/blog
 run/blog: ## run the blog binary
-	go run ./cmd/blog -db-dsn=${BLOG_DB_DSN}
+	go run ./cmd/blog -db-dsn=${BLOG_DB_DSN} -addr=":8080"
 
 .PHONY: run/blog-admin
 run/blog-admin: ## run the blog-admin binary
