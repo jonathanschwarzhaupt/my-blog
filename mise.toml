@@ -1,0 +1,12 @@
+[tools]
+pre-commit = "latest"
+go = "1.26.4"
+node = "26"
+python = "latest"
+gh = "latest"
+
+[settings]
+experimental = true
+
+[hooks]
+enter = "bash ./scripts/setup_project"
