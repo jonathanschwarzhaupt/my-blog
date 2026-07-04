@@ -21,6 +21,7 @@ func newTestApplicationWithDB(db database.Querier) *application {
 		logger:  slog.New(slog.NewTextHandler(io.Discard, nil)),
 		db:      db,
 		limiter: newRateLimiter(0, 0, false), // disabled — rate limiting isn't under test here
+		baseURL: "http://example.com",
 	}
 }
 

@@ -288,6 +288,10 @@ Deliberate deviation from the book: neither binary terminates TLS itself. `blog`
 - Configurable via flags (`rps`, `burst`, `enabled`) so it can be disabled for local dev/load testing without a code change.
 - Note this in-memory approach only works for a single instance — fine here since there's exactly one `blog` process, but wouldn't survive a move to multiple replicas without an external store.
 
+## RSS feed (`blog` only)
+
+`GET /feed.xml` generates an RSS 2.0 document from the same `ListPosts` query backing the home page (same order, newest-first) — built with `encoding/xml` (`rssFeed`/`rssChannel`/`rssItem` in `cmd/blog/feed.go`), not a templ component, since it's XML rather than HTML. Each item's `link`/`guid` is `app.baseURL + "/posts/" + slug`, so absolute link correctness depends entirely on `-base-url` being set correctly in production — `main.go` logs a `Warn` at startup if it's left at the `http://localhost:4000` default, since a misconfigured value silently produces unusable feed links with no runtime error. `Description` is each post's So What, not a body excerpt.
+
 ## Metrics (ops, not page analytics)
 
 Separate from the self-hosted Umami/Plausible *page-view* analytics (Q13 of the design) — these are internal operational metrics, exposed via `expvar` for your own debugging, not visitor tracking:

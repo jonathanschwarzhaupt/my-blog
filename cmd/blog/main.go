@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -18,6 +19,7 @@ type application struct {
 	logger  *slog.Logger
 	db      database.Querier
 	limiter *rateLimiter
+	baseURL string
 }
 
 func main() {
@@ -48,10 +50,19 @@ func main() {
 	limiter := newRateLimiter(opts.limiterRPS, opts.limiterBurst, opts.limiterEnabled)
 	limiter.startCleanup(time.Minute, 3*time.Minute)
 
+	baseURL := opts.baseURL
+	if baseURL == "" {
+		baseURL = defaultBaseURL
+	}
+	if baseURL == defaultBaseURL {
+		logger.Warn("base-url is unset or still the default; RSS feed links will be unusable in production", "base-url", baseURL)
+	}
+
 	app := &application{
 		logger:  logger,
 		db:      database.New(pool),
 		limiter: limiter,
+		baseURL: strings.TrimSuffix(baseURL, "/"),
 	}
 
 	if err := serve(ctx, app, opts.addr); err != nil {

@@ -6,8 +6,11 @@ import (
 	"time"
 )
 
+const defaultBaseURL = "http://localhost:4000"
+
 type options struct {
 	addr           string
+	baseURL        string
 	dbDSN          string
 	dbMaxConns     int
 	dbMinConns     int
@@ -23,6 +26,7 @@ func parseOptions() *options {
 	opts := &options{}
 
 	flag.StringVar(&opts.addr, "addr", ":4000", "HTTP network address")
+	flag.StringVar(&opts.baseURL, "base-url", defaultBaseURL, "Public base URL used for absolute links (e.g. RSS)")
 	flag.StringVar(&opts.dbDSN, "db-dsn", os.Getenv("BLOG_DB_DSN"), "PostgreSQL DSN")
 	flag.IntVar(&opts.dbMaxConns, "db-max-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&opts.dbMinConns, "db-min-conns", 5, "PostgreSQL min/idle connections")
