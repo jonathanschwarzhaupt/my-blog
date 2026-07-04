@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -22,16 +20,9 @@ type application struct {
 }
 
 func main() {
-	addr := flag.String("addr", ":4000", "HTTP network address")
-	dsn := flag.String("db-dsn", os.Getenv("BLOG_DB_DSN"), "PostgreSQL DSN")
-	maxConns := flag.Int("db-max-conns", 25, "PostgreSQL max open connections")
-	minConns := flag.Int("db-min-conns", 5, "PostgreSQL min/idle connections")
-	maxConnIdleTime := flag.Duration("db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
-	displayVersion := flag.Bool("version", false, "Display version and exit")
+	opts := parseOptions()
 
-	flag.Parse()
-
-	if *displayVersion {
+	if opts.displayVersion {
 		fmt.Println(vcs.Version())
 		os.Exit(0)
 	}
@@ -41,10 +32,10 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := models.OpenPool(ctx, *dsn, models.PoolConfig{
-		MaxConns:        int32(*maxConns),
-		MinConns:        int32(*minConns),
-		MaxConnIdleTime: *maxConnIdleTime,
+	pool, err := models.OpenPool(ctx, opts.dbDSN, models.PoolConfig{
+		MaxConns:        int32(opts.dbMaxConns),
+		MinConns:        int32(opts.dbMinConns),
+		MaxConnIdleTime: opts.dbMaxIdleTime,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -57,7 +48,7 @@ func main() {
 		pool:   pool,
 	}
 
-	if err := serve(ctx, app, *addr); err != nil {
+	if err := serve(ctx, app, opts.addr); err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}

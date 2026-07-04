@@ -4,6 +4,8 @@ This project follows the architectural patterns from *Let's Go* and *Let's Go Fu
 
 Component reference: `docs/references/templui/llms.txt` documents the templui component catalog.
 
+The database layer (sqlc + goose, `internal/database` generated / `internal/models` hand-written) and the `options.go` config pattern follow `jonathanschwarzhaupt/go-cookbook`'s established convention, not the books' hand-rolled model / inline-flags approach.
+
 ## Project structure
 
 Two executables sharing one `internal/` tree:
@@ -78,7 +80,30 @@ Never stash long-lived dependencies (DB pool, logger) in request context — onl
 
 ## Configuration
 
-Use the `flag` package (`flag.String("addr", ":4000", "...")`, `flag.Parse()`) rather than bare `os.Getenv` — gives type conversion, defaults, and free `-help`. Pipe environment values (Neon DSN, etc.) in as flag defaults if the deployment needs it.
+Matches the `options.go` pattern from `jonathanschwarzhaupt/go-cookbook`: each binary gets its own `options` struct + `parseOptions() *options` in `options.go`, keeping `main.go` itself down to wiring, not flag declarations.
+
+```go
+// cmd/blog/options.go
+type options struct {
+    addr           string
+    dbDSN          string
+    dbMaxConns     int
+    dbMinConns     int
+    dbMaxIdleTime  time.Duration
+    displayVersion bool
+}
+
+func parseOptions() *options {
+    opts := &options{}
+    flag.StringVar(&opts.addr, "addr", ":4000", "HTTP network address")
+    flag.StringVar(&opts.dbDSN, "db-dsn", os.Getenv("BLOG_DB_DSN"), "PostgreSQL DSN")
+    // ...
+    flag.Parse()
+    return opts
+}
+```
+
+Use the `flag` package (gives type conversion, defaults, and free `-help`) rather than bare `os.Getenv` for every setting. Pipe environment values (Neon DSN, etc.) in as flag defaults so the same binary works identically whether launched via `make run/...` (env-backed default) or with an explicit override flag — don't make the DSN a hard-required env var with no flag path, since that removes the override needed for tests/local dev pointing at a different database.
 
 ## Logging
 
