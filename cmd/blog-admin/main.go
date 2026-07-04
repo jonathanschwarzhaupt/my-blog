@@ -35,6 +35,7 @@ func main() {
 	pool, err := models.OpenPool(ctx, opts.dbDSN, models.PoolConfig{
 		MaxConns:        int32(opts.dbMaxConns),
 		MinConns:        int32(opts.dbMinConns),
+		MaxConnLifetime: opts.dbMaxConnLife,
 		MaxConnIdleTime: opts.dbMaxIdleTime,
 	})
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 )
 
 func TestOpenPool_BadDSN(t *testing.T) {
-	cfg := PoolConfig{MaxConns: 5, MinConns: 1, MaxConnIdleTime: time.Minute}
+	cfg := PoolConfig{MaxConns: 5, MinConns: 1, MaxConnLifetime: time.Hour, MaxConnIdleTime: time.Minute}
 
 	_, err := OpenPool(context.Background(), "not-a-valid-dsn", cfg)
 
@@ -35,7 +35,7 @@ func TestOpenPool_RealDatabase(t *testing.T) {
 		t.Skip("BLOG_DB_DSN not set")
 	}
 
-	cfg := PoolConfig{MaxConns: 5, MinConns: 1, MaxConnIdleTime: time.Minute}
+	cfg := PoolConfig{MaxConns: 5, MinConns: 1, MaxConnLifetime: time.Hour, MaxConnIdleTime: time.Minute}
 
 	pool, err := OpenPool(context.Background(), dsn, cfg)
 	if err != nil {
