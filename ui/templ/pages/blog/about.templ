@@ -1,6 +1,10 @@
 package blog
 
-import "github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+import (
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/badge"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/button"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+)
 
 // About renders placeholder bio/Skills content — replace with the real
 // thing. The image, bio paragraph, and skills list below are all safe to
@@ -8,20 +12,40 @@ import "github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 templ About() {
 	@layout.Base("About", "") {
 		<article>
-			<h1>About Me</h1>
-			<img src="/static/images/profile-placeholder.svg" alt="Photo of the site owner" width="240" height="240"/>
-			<p>
-				Hi, I'm the person behind this blog. I write about the things I build —
-				software, infrastructure, and the occasional homelab rabbit hole.
-			</p>
-			<h2>Skills</h2>
-			<ul>
-				<li>Go</li>
-				<li>PostgreSQL</li>
-				<li>Kubernetes</li>
-				<li>Homelab / self-hosting</li>
-			</ul>
-			<p>My <a href="/projects">Projects</a> page has evidence of this work in practice.</p>
+			<h1 class="text-2xl font-semibold tracking-tight">About Me</h1>
+			<div class="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start">
+				<img
+					src="/static/images/profile-placeholder.svg"
+					alt="Placeholder profile photo, to be replaced with a real one"
+					width="160"
+					height="160"
+					class="h-40 w-40 shrink-0 rounded-full border border-border object-cover"
+				/>
+				<p class="text-muted-foreground">
+					Hi, I'm the person behind this blog. I write about the things I build —
+					software, infrastructure, and the occasional homelab rabbit hole.
+				</p>
+			</div>
+			<h2 class="mt-8 text-lg font-semibold tracking-tight">Skills</h2>
+			<div class="mt-3 flex flex-wrap gap-2">
+				@badge.Badge(badge.Props{Variant: badge.VariantSecondary}) {
+					Go
+				}
+				@badge.Badge(badge.Props{Variant: badge.VariantSecondary}) {
+					PostgreSQL
+				}
+				@badge.Badge(badge.Props{Variant: badge.VariantSecondary}) {
+					Kubernetes
+				}
+				@badge.Badge(badge.Props{Variant: badge.VariantSecondary}) {
+					Homelab / self-hosting
+				}
+			</div>
+			<div class="mt-8">
+				@button.Button(button.Props{Href: "/projects"}) {
+					See my Projects
+				}
+			</div>
 		</article>
 	}
 }
