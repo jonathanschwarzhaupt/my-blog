@@ -30,3 +30,12 @@ DELETE FROM post_projects WHERE post_id = $1;
 
 -- name: InsertPostProject :exec
 INSERT INTO post_projects (post_id, project_id) VALUES ($1, $2);
+
+-- name: ListFeaturedProjects :many
+SELECT * FROM projects WHERE featured_rank IS NOT NULL ORDER BY featured_rank ASC;
+
+-- name: ClearFeaturedProjects :exec
+UPDATE projects SET featured_rank = NULL WHERE featured_rank IS NOT NULL;
+
+-- name: SetFeaturedProject :exec
+UPDATE projects SET featured_rank = $1 WHERE id = $2;

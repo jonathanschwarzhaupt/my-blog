@@ -19,6 +19,12 @@ type MockQuerier struct {
 	ListPostsByProjectSlugFunc func(ctx context.Context, slug string) ([]database.Post, error)
 	DeletePostProjectsFunc     func(ctx context.Context, postID int64) error
 	InsertPostProjectFunc      func(ctx context.Context, arg database.InsertPostProjectParams) error
+	ListFeaturedPostsFunc      func(ctx context.Context) ([]database.Post, error)
+	ClearFeaturedPostsFunc     func(ctx context.Context) error
+	SetFeaturedPostFunc        func(ctx context.Context, arg database.SetFeaturedPostParams) error
+	ListFeaturedProjectsFunc   func(ctx context.Context) ([]database.Project, error)
+	ClearFeaturedProjectsFunc  func(ctx context.Context) error
+	SetFeaturedProjectFunc     func(ctx context.Context, arg database.SetFeaturedProjectParams) error
 }
 
 func (m *MockQuerier) GetPost(ctx context.Context, slug string) (database.Post, error) {
@@ -67,6 +73,30 @@ func (m *MockQuerier) DeletePostProjects(ctx context.Context, postID int64) erro
 
 func (m *MockQuerier) InsertPostProject(ctx context.Context, arg database.InsertPostProjectParams) error {
 	return m.InsertPostProjectFunc(ctx, arg)
+}
+
+func (m *MockQuerier) ListFeaturedPosts(ctx context.Context) ([]database.Post, error) {
+	return m.ListFeaturedPostsFunc(ctx)
+}
+
+func (m *MockQuerier) ClearFeaturedPosts(ctx context.Context) error {
+	return m.ClearFeaturedPostsFunc(ctx)
+}
+
+func (m *MockQuerier) SetFeaturedPost(ctx context.Context, arg database.SetFeaturedPostParams) error {
+	return m.SetFeaturedPostFunc(ctx, arg)
+}
+
+func (m *MockQuerier) ListFeaturedProjects(ctx context.Context) ([]database.Project, error) {
+	return m.ListFeaturedProjectsFunc(ctx)
+}
+
+func (m *MockQuerier) ClearFeaturedProjects(ctx context.Context) error {
+	return m.ClearFeaturedProjectsFunc(ctx)
+}
+
+func (m *MockQuerier) SetFeaturedProject(ctx context.Context, arg database.SetFeaturedProjectParams) error {
+	return m.SetFeaturedProjectFunc(ctx, arg)
 }
 
 var _ database.Querier = (*MockQuerier)(nil)

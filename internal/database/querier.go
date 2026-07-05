@@ -9,6 +9,8 @@ import (
 )
 
 type Querier interface {
+	ClearFeaturedPosts(ctx context.Context) error
+	ClearFeaturedProjects(ctx context.Context) error
 	DeletePostProjects(ctx context.Context, postID int64) error
 	GetPost(ctx context.Context, slug string) (Post, error)
 	GetProjectBySlug(ctx context.Context, slug string) (Project, error)
@@ -17,9 +19,13 @@ type Querier interface {
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
 	InsertPostProject(ctx context.Context, arg InsertPostProjectParams) error
 	InsertProject(ctx context.Context, arg InsertProjectParams) (Project, error)
+	ListFeaturedPosts(ctx context.Context) ([]Post, error)
+	ListFeaturedProjects(ctx context.Context) ([]Project, error)
 	ListPosts(ctx context.Context) ([]Post, error)
 	ListPostsByProjectSlug(ctx context.Context, slug string) ([]Post, error)
 	ListProjects(ctx context.Context) ([]Project, error)
+	SetFeaturedPost(ctx context.Context, arg SetFeaturedPostParams) error
+	SetFeaturedProject(ctx context.Context, arg SetFeaturedProjectParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
 }
 

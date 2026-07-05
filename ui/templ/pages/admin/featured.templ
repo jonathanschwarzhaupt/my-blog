@@ -1,0 +1,97 @@
+package admin
+
+import (
+	"strconv"
+
+	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/my-blog/internal/validator"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/alert"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/button"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/label"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+)
+
+// FeaturedForm's slot fields use 0 as the "— none —" sentinel — real
+// post/project IDs start at 1 (bigint GENERATED ALWAYS AS IDENTITY), so 0
+// never collides with a real row.
+type FeaturedForm struct {
+	PostSlot1    int64 `form:"post_slot_1"`
+	PostSlot2    int64 `form:"post_slot_2"`
+	PostSlot3    int64 `form:"post_slot_3"`
+	ProjectSlot1 int64 `form:"project_slot_1"`
+	ProjectSlot2 int64 `form:"project_slot_2"`
+	ProjectSlot3 int64 `form:"project_slot_3"`
+
+	validator.Validator `form:"-"`
+}
+
+templ ManageFeatured(form FeaturedForm, allPosts []models.Post, allProjects []models.Project, flash string) {
+	@layout.Base("Manage Featured", flash) {
+		<form method="POST" action="/admin/featured" class="flex flex-col gap-8">
+			if len(form.NonFieldErrors) > 0 {
+				@alert.Alert(alert.Props{Variant: alert.VariantDestructive}) {
+					@alert.Description() {
+						for _, err := range form.NonFieldErrors {
+							<p>{ err }</p>
+						}
+					}
+				}
+			}
+			<div>
+				<h2 class="text-lg font-semibold tracking-tight">Featured Posts</h2>
+				<p class="mt-1 text-sm text-muted-foreground">Shown on the home page, in this order.</p>
+				<div class="mt-3 flex flex-col gap-3">
+					@postSlot("post_slot_1", "Slot 1", form.PostSlot1, allPosts)
+					@postSlot("post_slot_2", "Slot 2", form.PostSlot2, allPosts)
+					@postSlot("post_slot_3", "Slot 3", form.PostSlot3, allPosts)
+				</div>
+			</div>
+			<div>
+				<h2 class="text-lg font-semibold tracking-tight">Featured Projects</h2>
+				<p class="mt-1 text-sm text-muted-foreground">Shown on the home page, in this order.</p>
+				<div class="mt-3 flex flex-col gap-3">
+					@projectSlot("project_slot_1", "Slot 1", form.ProjectSlot1, allProjects)
+					@projectSlot("project_slot_2", "Slot 2", form.ProjectSlot2, allProjects)
+					@projectSlot("project_slot_3", "Slot 3", form.ProjectSlot3, allProjects)
+				</div>
+			</div>
+			@button.Button(button.Props{Type: button.TypeSubmit}) {
+				Save
+			}
+		</form>
+	}
+}
+
+templ postSlot(name, slotLabel string, selected int64, posts []models.Post) {
+	<div class="flex flex-col gap-1.5">
+		@label.Label(label.Props{For: name}) {
+			{ slotLabel }
+		}
+		<select id={ name } name={ name } class={ selectClasses }>
+			<option value="0" selected?={ selected == 0 }>— none —</option>
+			for _, p := range posts {
+				<option value={ strconv.FormatInt(p.ID, 10) } selected?={ selected == p.ID }>{ p.Title }</option>
+			}
+		</select>
+	</div>
+}
+
+templ projectSlot(name, slotLabel string, selected int64, projects []models.Project) {
+	<div class="flex flex-col gap-1.5">
+		@label.Label(label.Props{For: name}) {
+			{ slotLabel }
+		}
+		<select id={ name } name={ name } class={ selectClasses }>
+			<option value="0" selected?={ selected == 0 }>— none —</option>
+			for _, p := range projects {
+				<option value={ strconv.FormatInt(p.ID, 10) } selected?={ selected == p.ID }>{ p.Name }</option>
+			}
+		</select>
+	</div>
+}
+
+// selectClasses mirrors input.Input's base styling so a native <select>
+// looks consistent with the rest of the form controls — templui doesn't
+// have a plain (non-searchable) select component, and a searchable one
+// would be more than this small, short admin-only list needs.
+const selectClasses = "flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"

@@ -30,6 +30,8 @@ func (app *application) routes() http.Handler {
 		mux.Handle("POST /posts/{slug}/edit", dynamic.ThenFunc(app.postUpdate))
 		mux.Handle("GET /projects/new", dynamic.ThenFunc(app.projectCreate))
 		mux.Handle("POST /projects", dynamic.ThenFunc(app.projectCreatePost))
+		mux.Handle("GET /admin/featured", dynamic.ThenFunc(app.manageFeatured))
+		mux.Handle("POST /admin/featured", dynamic.ThenFunc(app.manageFeaturedPost))
 	}
 
 	middlewares := []alice.Constructor{requestID, app.recoverPanic, app.metrics.middleware}

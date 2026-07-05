@@ -7,10 +7,21 @@ package database
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const clearFeaturedPosts = `-- name: ClearFeaturedPosts :exec
+UPDATE posts SET featured_rank = NULL WHERE featured_rank IS NOT NULL
+`
+
+func (q *Queries) ClearFeaturedPosts(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, clearFeaturedPosts)
+	return err
+}
+
 const getPost = `-- name: GetPost :one
-SELECT id, title, slug, body, so_what, tags, version, published_at FROM posts WHERE slug = $1
+SELECT id, title, slug, body, so_what, tags, version, published_at, featured_rank FROM posts WHERE slug = $1
 `
 
 func (q *Queries) GetPost(ctx context.Context, slug string) (Post, error) {
@@ -25,6 +36,7 @@ func (q *Queries) GetPost(ctx context.Context, slug string) (Post, error) {
 		&i.Tags,
 		&i.Version,
 		&i.PublishedAt,
+		&i.FeaturedRank,
 	)
 	return i, err
 }
@@ -32,7 +44,7 @@ func (q *Queries) GetPost(ctx context.Context, slug string) (Post, error) {
 const insertPost = `-- name: InsertPost :one
 INSERT INTO posts (title, slug, body, so_what, tags)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, title, slug, body, so_what, tags, version, published_at
+RETURNING id, title, slug, body, so_what, tags, version, published_at, featured_rank
 `
 
 type InsertPostParams struct {
@@ -61,12 +73,47 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, e
 		&i.Tags,
 		&i.Version,
 		&i.PublishedAt,
+		&i.FeaturedRank,
 	)
 	return i, err
 }
 
+const listFeaturedPosts = `-- name: ListFeaturedPosts :many
+SELECT id, title, slug, body, so_what, tags, version, published_at, featured_rank FROM posts WHERE featured_rank IS NOT NULL ORDER BY featured_rank ASC
+`
+
+func (q *Queries) ListFeaturedPosts(ctx context.Context) ([]Post, error) {
+	rows, err := q.db.Query(ctx, listFeaturedPosts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Slug,
+			&i.Body,
+			&i.SoWhat,
+			&i.Tags,
+			&i.Version,
+			&i.PublishedAt,
+			&i.FeaturedRank,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPosts = `-- name: ListPosts :many
-SELECT id, title, slug, body, so_what, tags, version, published_at FROM posts ORDER BY published_at DESC, id ASC
+SELECT id, title, slug, body, so_what, tags, version, published_at, featured_rank FROM posts ORDER BY published_at DESC, id ASC
 `
 
 func (q *Queries) ListPosts(ctx context.Context) ([]Post, error) {
@@ -87,6 +134,7 @@ func (q *Queries) ListPosts(ctx context.Context) ([]Post, error) {
 			&i.Tags,
 			&i.Version,
 			&i.PublishedAt,
+			&i.FeaturedRank,
 		); err != nil {
 			return nil, err
 		}
@@ -98,11 +146,25 @@ func (q *Queries) ListPosts(ctx context.Context) ([]Post, error) {
 	return items, nil
 }
 
+const setFeaturedPost = `-- name: SetFeaturedPost :exec
+UPDATE posts SET featured_rank = $1 WHERE id = $2
+`
+
+type SetFeaturedPostParams struct {
+	FeaturedRank pgtype.Int4
+	ID           int64
+}
+
+func (q *Queries) SetFeaturedPost(ctx context.Context, arg SetFeaturedPostParams) error {
+	_, err := q.db.Exec(ctx, setFeaturedPost, arg.FeaturedRank, arg.ID)
+	return err
+}
+
 const updatePost = `-- name: UpdatePost :one
 UPDATE posts
 SET title = $1, body = $2, so_what = $3, tags = $4, version = version + 1
 WHERE id = $5 AND version = $6
-RETURNING id, title, slug, body, so_what, tags, version, published_at
+RETURNING id, title, slug, body, so_what, tags, version, published_at, featured_rank
 `
 
 type UpdatePostParams struct {
@@ -133,6 +195,7 @@ func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, e
 		&i.Tags,
 		&i.Version,
 		&i.PublishedAt,
+		&i.FeaturedRank,
 	)
 	return i, err
 }

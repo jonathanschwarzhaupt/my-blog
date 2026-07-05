@@ -9,14 +9,15 @@ import (
 )
 
 type Post struct {
-	ID          int64
-	Title       string
-	Slug        string
-	Body        string
-	SoWhat      string
-	Tags        []string
-	Version     int32
-	PublishedAt pgtype.Timestamptz
+	ID           int64
+	Title        string
+	Slug         string
+	Body         string
+	SoWhat       string
+	Tags         []string
+	Version      int32
+	PublishedAt  pgtype.Timestamptz
+	FeaturedRank pgtype.Int4
 }
 
 type PostProject struct {
@@ -25,10 +26,11 @@ type PostProject struct {
 }
 
 type Project struct {
-	ID          int64
-	Name        string
-	Slug        string
-	Description string
+	ID           int64
+	Name         string
+	Slug         string
+	Description  string
+	FeaturedRank pgtype.Int4
 }
 
 type Session struct {
