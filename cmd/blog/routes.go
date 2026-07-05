@@ -32,7 +32,7 @@ func (app *application) routes() http.Handler {
 		mux.Handle("POST /projects", dynamic.ThenFunc(app.projectCreatePost))
 	}
 
-	middlewares := []alice.Constructor{app.recoverPanic}
+	middlewares := []alice.Constructor{requestID, app.recoverPanic}
 	if !layout.Features.Admin {
 		// Tailscale reachability is already the access control for the
 		// admin deployment, so rate limiting is skipped there entirely

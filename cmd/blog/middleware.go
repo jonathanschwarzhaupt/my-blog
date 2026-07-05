@@ -4,7 +4,40 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
+
+// statusRecorder wraps http.ResponseWriter to capture the status code
+// actually sent, defaulting to 200 (matching net/http's own default) if
+// Write is called without an explicit prior WriteHeader.
+type statusRecorder struct {
+	http.ResponseWriter
+	status      int
+	wroteHeader bool
+}
+
+func (r *statusRecorder) WriteHeader(status int) {
+	if !r.wroteHeader {
+		r.status = status
+		r.wroteHeader = true
+	}
+	r.ResponseWriter.WriteHeader(status)
+}
+
+func (r *statusRecorder) Write(b []byte) (int, error) {
+	if !r.wroteHeader {
+		r.status = http.StatusOK
+		r.wroteHeader = true
+	}
+	return r.ResponseWriter.Write(b)
+}
+
+// Unwrap exposes the underlying ResponseWriter for http.ResponseController
+// and any other code that type-asserts for optional interfaces (Flusher,
+// Hijacker, etc.) that statusRecorder itself doesn't implement.
+func (r *statusRecorder) Unwrap() http.ResponseWriter {
+	return r.ResponseWriter
+}
 
 func commonHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -27,14 +60,20 @@ func (app *application) logRequest(next http.Handler) http.Handler {
 			return
 		}
 
+		start := time.Now()
+		rec := &statusRecorder{ResponseWriter: w}
+
+		next.ServeHTTP(rec, r)
+
 		app.logger.Info("received request",
+			"request_id", requestIDFromContext(r.Context()),
 			"ip", realIP(r),
 			"proto", r.Proto,
 			"method", r.Method,
 			"uri", r.URL.RequestURI(),
+			"status", rec.status,
+			"duration_ms", time.Since(start).Milliseconds(),
 		)
-
-		next.ServeHTTP(w, r)
 	})
 }
 

@@ -61,6 +61,32 @@ func newTestPublicApplicationWithDB(db database.Querier) *application {
 	}
 }
 
+func TestRoutes_RequestIDFlowsThroughToLogRecord(t *testing.T) {
+	rec := &recordingHandler{}
+
+	app := newTestApplication()
+	app.logger = slog.New(rec)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	rs, err := http.Get(ts.URL + "/health")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	headerID := rs.Header.Get("X-Request-Id")
+	assert.NotEqual(t, headerID, "")
+
+	if len(rec.records) != 1 {
+		t.Fatalf("got %d records; want 1", len(rec.records))
+	}
+
+	attrs := recordAttrs(rec.records[0])
+	assert.Equal(t, attrs["request_id"], any(headerID))
+}
+
 func TestHealthcheck(t *testing.T) {
 	app := newTestApplication()
 

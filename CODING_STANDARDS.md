@@ -109,6 +109,10 @@ Use the `flag` package (gives type conversion, defaults, and free `-help`) rathe
 
 `log/slog`: `slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{...}))`. Structured key-value logging (`logger.Error(err.Error(), "method", r.Method, "uri", r.URL.RequestURI())`), never `log.Fatal` — log at Error then `os.Exit(1)`. Route the `http.Server`'s own `ErrorLog` through slog via `slog.NewLogLogger(...)`.
 
+**One canonical log line per request**, not several. `logRequest` wraps the response in `statusRecorder` (`middleware.go`) — a small `http.ResponseWriter` wrapper capturing the status code actually sent (defaulting to 200 if `Write` is called without an explicit `WriteHeader`, matching `net/http`'s own default; implements `Unwrap() http.ResponseWriter` for compatibility with `http.ResponseController`) — times the handler, then logs once *after* `next.ServeHTTP` returns with the full picture: `request_id`, `ip`, `proto`, `method`, `uri`, `status`, `duration_ms`. This is a deliberate reordering from logging before serving: a truly hung request now produces no log line until it completes (or is cut off by `ReadTimeout`/`WriteTimeout`), but a single richer line beats a thinner one logged early, and grepping `status=5` across time is now possible at all.
+
+**`request_id`** (`requestid.go`) is a short `math/rand/v2`-generated correlation identifier — not a security token (no `crypto/rand` needed) and not distributed tracing (there's one process and one database, nothing to propagate a trace context to) — assigned by the `requestID` middleware (first in the `standard` chain, before `recoverPanic`, so it's available even if the handler panics), stored via an unexported `contextKey` type, returned as `X-Request-Id`, and included in both the `logRequest` summary line and `serverError`/`render`'s error-path log lines. This is what lets a request's summary line and an error it triggered mid-handler be correlated, even with other requests logged in between.
+
 ## Error handling
 
 Centralize in `helpers.go`:
