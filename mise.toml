@@ -5,6 +5,7 @@ node = "26"
 python = "latest"
 gh = "latest"
 "aqua:tailwindlabs/tailwindcss" = "latest"
+air = "latest"
 
 [settings]
 experimental = true

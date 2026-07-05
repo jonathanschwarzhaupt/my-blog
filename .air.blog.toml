@@ -1,0 +1,35 @@
+# Hot reload for cmd/blog during local development.
+# Requires .envrc to be sourced in your shell first (same requirement as
+# running `go run ./cmd/blog` directly) — full_bin doesn't go through the
+# Makefile's own variable interpolation, so BLOG_DB_DSN must already be a
+# real environment variable for the built binary to inherit.
+#
+# Run via `make dev/blog`.
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Reuses the existing Makefile target — regenerates templ output, rebuilds
+# Tailwind CSS, then compiles the binary, in that order.
+cmd = "make build/blog"
+entrypoint = ["./bin/blog"]
+full_bin = "./bin/blog -addr=:8080"
+include_ext = ["go", "templ", "css"]
+exclude_dir = ["bin", "tmp", "ui/static", "docs", ".git", ".devcontainer"]
+# _templ.go is templ-generated output from .templ files handled above — if
+# it weren't excluded, "cmd"'s own regeneration step would immediately
+# retrigger another rebuild, looping forever.
+exclude_regex = ["_templ\\.go$", "_test\\.go$"]
+exclude_unchanged = true
+delay = 200
+stop_on_error = true
+send_interrupt = true
+
+[misc]
+clean_on_exit = false
+
+[proxy]
+enabled = true
+proxy_port = 8091
+app_port = 8080

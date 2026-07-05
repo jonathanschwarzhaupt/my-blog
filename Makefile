@@ -14,12 +14,20 @@ run/blog: addr ?= :8080
 run/blog-admin: addr ?= :4001
 
 .PHONY: run/blog
-run/blog: css/build ## run the blog binary (override port: make run/blog addr=:8081)
+run/blog: templ/generate css/build ## run the blog binary (override port: make run/blog addr=:8081)
 	go run ./cmd/blog -db-dsn=${BLOG_DB_DSN} -addr=${addr}
 
 .PHONY: run/blog-admin
-run/blog-admin: css/build ## run the blog-admin binary (override port: make run/blog-admin addr=:4002)
+run/blog-admin: templ/generate css/build ## run the blog-admin binary (override port: make run/blog-admin addr=:4002)
 	go run ./cmd/blog-admin -db-dsn=${BLOG_DB_DSN} -addr=${addr}
+
+.PHONY: dev/blog
+dev/blog: ## run the blog binary with hot reload (air)
+	mise exec -- air -c .air.blog.toml
+
+.PHONY: dev/blog-admin
+dev/blog-admin: ## run the blog-admin binary with hot reload (air)
+	mise exec -- air -c .air.blog-admin.toml
 
 .PHONY: css/before_build
 css/before_build:
@@ -49,6 +57,10 @@ db/migrations/status: ## show migration status
 sqlc/generate: ## regenerate internal/database from sql/queries + sql/schema
 	go tool sqlc generate
 
+.PHONY: templ/generate
+templ/generate: ## regenerate _templ.go files from ui/templ/**/*.templ
+	go tool templ generate
+
 .PHONY: confirm
 confirm:
 	@echo -n 'Are you sure? [y/N] ' && read ans && [ $${ans:-N} = y ]
@@ -58,7 +70,7 @@ confirm:
 # ==================================================================================== #
 
 .PHONY: audit
-audit: css/before_build css/build ## run quality control checks
+audit: templ/generate css/before_build css/build ## run quality control checks
 	@diff -q ui/static/css/main.css /tmp/main.css.before-audit >/dev/null 2>&1 && rm -f /tmp/main.css.before-audit || (rm -f /tmp/main.css.before-audit && echo "ui/static/css/main.css was stale and has been rebuilt — review and include it in your commit" && exit 1)
 	go mod tidy -diff
 	go mod verify
@@ -80,11 +92,11 @@ tidy: ## tidy modfiles and format .go files
 linker_flags = '-s'
 
 .PHONY: build/blog
-build/blog: css/build ## build the blog binary
+build/blog: templ/generate css/build ## build the blog binary
 	go build -ldflags=${linker_flags} -o=./bin/blog ./cmd/blog
 
 .PHONY: build/blog-admin
-build/blog-admin: css/build ## build the blog-admin binary
+build/blog-admin: templ/generate css/build ## build the blog-admin binary
 	go build -ldflags=${linker_flags} -o=./bin/blog-admin ./cmd/blog-admin
 
 .PHONY: build/migrate
