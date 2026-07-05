@@ -26,7 +26,7 @@ func TestProjectView_ListsPostsOldestFirst(t *testing.T) {
 		},
 		ListPostsByProjectSlugFunc: func(ctx context.Context, slug string) ([]database.Post, error) {
 			return []database.Post{
-				{ID: 1, Title: "Part One", Slug: "part-one", SoWhat: "the beginning", PublishedAt: older},
+				{ID: 1, Title: "Part One", Slug: "part-one", SoWhat: "the beginning", Tags: []string{"go", "homelab"}, PublishedAt: older},
 				{ID: 2, Title: "Part Two", Slug: "part-two", SoWhat: "the sequel", PublishedAt: newer},
 			}, nil
 		},
@@ -57,6 +57,11 @@ func TestProjectView_ListsPostsOldestFirst(t *testing.T) {
 	firstIdx := indexOf(html, "Part One")
 	secondIdx := indexOf(html, "Part Two")
 	assert.True(t, firstIdx >= 0 && secondIdx >= 0 && firstIdx < secondIdx)
+
+	// Exercises PostCard's tag-badge rendering path through the Project
+	// view specifically, not just Home (which shares the same component).
+	assert.StringContains(t, html, "go")
+	assert.StringContains(t, html, "homelab")
 }
 
 func indexOf(s, substr string) int {

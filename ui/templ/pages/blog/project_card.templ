@@ -1,0 +1,29 @@
+package blog
+
+import (
+	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/card"
+)
+
+// ProjectCard is the reusable scannable-card treatment for a Project — used
+// on the Projects index, mirroring PostCard's treatment of a Post so both
+// listings feel like the same site rather than bolted-on sections. Unlike
+// PostCard, there's no Content section (a Project has no tags), so Header's
+// bottom padding is always restored, not conditionally.
+templ ProjectCard(project models.Project) {
+	@card.Card() {
+		// Unconditional "pb-6" only holds because Project has no field that
+		// warrants a card.Content section today. If one is ever added (e.g.
+		// tech-stack badges), make this conditional on that field's
+		// presence, the same way PostCard's Header padding is driven by
+		// len(post.Tags) — otherwise the card ends up double-padded.
+		@card.Header(card.HeaderProps{Class: "pb-6"}) {
+			@card.Title() {
+				<a href={ templ.URL("/projects/" + project.Slug) } class="hover:underline">{ project.Name }</a>
+			}
+			@card.Description() {
+				{ project.Description }
+			}
+		}
+	}
+}

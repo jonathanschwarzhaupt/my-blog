@@ -7,12 +7,11 @@ import (
 
 templ ProjectsIndex(projects []models.Project) {
 	@layout.Base("Projects", "") {
-		<h1>Projects</h1>
-		<ul>
+		<h1 class="mb-6 text-2xl font-semibold tracking-tight">Projects</h1>
+		<ul class="flex list-none flex-col gap-4 p-0">
 			for _, project := range projects {
 				<li>
-					<a href={ templ.URL("/projects/" + project.Slug) }>{ project.Name }</a>
-					<p>{ project.Description }</p>
+					@ProjectCard(project)
 				</li>
 			}
 		</ul>
