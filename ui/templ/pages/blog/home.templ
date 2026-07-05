@@ -2,18 +2,75 @@ package blog
 
 import (
 	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/button"
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
-templ Home(posts []models.Post) {
+templ Home(featuredPosts []models.Post, featuredProjects []models.Project) {
 	@layout.Base("Home", "") {
-		<h1 class="mb-6 text-2xl font-semibold tracking-tight">Posts</h1>
-		<ul class="flex list-none flex-col gap-4 p-0">
-			for _, post := range posts {
-				<li>
-					@PostCard(post)
-				</li>
-			}
-		</ul>
+		<section>
+			<h1 class="text-3xl font-semibold tracking-tight">Jonathan Schwarzhaupt</h1>
+			<p class="mt-2 text-muted-foreground">
+				DevOps engineer. I write about the things I build — software,
+				infrastructure, and the occasional homelab rabbit hole.
+			</p>
+		</section>
+		if len(featuredPosts) > 0 {
+			<section class="mt-10">
+				<div class="flex items-baseline justify-between">
+					<h2 class="text-lg font-semibold tracking-tight">Posts</h2>
+					<a href="/posts" class="text-sm text-muted-foreground transition-colors hover:text-primary">See all posts</a>
+				</div>
+				@scrollRow() {
+					for _, post := range featuredPosts {
+						@scrollItem() {
+							@PostCard(post)
+						}
+					}
+				}
+			</section>
+		}
+		if len(featuredProjects) > 0 {
+			<section class="mt-10">
+				<div class="flex items-baseline justify-between">
+					<h2 class="text-lg font-semibold tracking-tight">Projects</h2>
+					<a href="/projects" class="text-sm text-muted-foreground transition-colors hover:text-primary">See all projects</a>
+				</div>
+				@scrollRow() {
+					for _, project := range featuredProjects {
+						@scrollItem() {
+							@ProjectCard(project)
+						}
+					}
+				}
+			</section>
+		}
+		<section class="mt-10">
+			<h2 class="text-lg font-semibold tracking-tight">About</h2>
+			<p class="mt-2 text-muted-foreground">
+				Hi, I'm the person behind this blog — I write about the things I build.
+			</p>
+			<div class="mt-3">
+				@button.Button(button.Props{Href: "/about", Variant: button.VariantLink, Class: "px-0"}) {
+					More about me
+				}
+			</div>
+		</section>
 	}
+}
+
+// scrollRow/scrollItem give featured content a lightweight "carousel-like"
+// feel via CSS scroll-snap alone — no JS. Each item is a fixed width
+// (scrollItem), not stretched to fill the row, so 1-2 featured items still
+// align cleanly instead of awkwardly spanning the full container width.
+templ scrollRow() {
+	<div class="mt-3 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+		{ children... }
+	</div>
+}
+
+templ scrollItem() {
+	<div class="w-72 shrink-0 snap-start">
+		{ children... }
+	</div>
 }

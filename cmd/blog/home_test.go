@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -16,15 +15,17 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database/mocks"
 )
 
-func TestHome_ListsPostsNewestFirst(t *testing.T) {
-	newer := pgtype.Timestamptz{Time: time.Date(2026, time.January, 2, 0, 0, 0, 0, time.UTC), Valid: true}
-	older := pgtype.Timestamptz{Time: time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC), Valid: true}
-
+func TestHome_ShowsFeaturedPostsAndProjectsInRankOrder(t *testing.T) {
 	mockDB := &mocks.MockQuerier{
-		ListPostsFunc: func(ctx context.Context) ([]database.Post, error) {
+		ListFeaturedPostsFunc: func(ctx context.Context) ([]database.Post, error) {
 			return []database.Post{
-				{ID: 2, Title: "Newer Post", Slug: "newer-post", SoWhat: "recent", Tags: []string{"go", "homelab"}, PublishedAt: newer},
-				{ID: 1, Title: "Older Post", Slug: "older-post", SoWhat: "past", PublishedAt: older},
+				{ID: 1, Title: "First Slot Post", Slug: "first-slot-post", SoWhat: "one", FeaturedRank: pgtype.Int4{Int32: 1, Valid: true}},
+				{ID: 2, Title: "Second Slot Post", Slug: "second-slot-post", SoWhat: "two", FeaturedRank: pgtype.Int4{Int32: 2, Valid: true}},
+			}, nil
+		},
+		ListFeaturedProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return []database.Project{
+				{ID: 1, Name: "Featured Project", Slug: "featured-project", Description: "desc", FeaturedRank: pgtype.Int4{Int32: 1, Valid: true}},
 			}, nil
 		},
 	}
@@ -48,15 +49,38 @@ func TestHome_ListsPostsNewestFirst(t *testing.T) {
 	assert.Equal(t, rs.StatusCode, http.StatusOK)
 
 	html := string(body)
-	newerIdx := strings.Index(html, "Newer Post")
-	olderIdx := strings.Index(html, "Older Post")
+	firstIdx := strings.Index(html, "First Slot Post")
+	secondIdx := strings.Index(html, "Second Slot Post")
+	assert.True(t, firstIdx >= 0)
+	assert.True(t, secondIdx >= 0)
+	assert.True(t, firstIdx < secondIdx)
 
-	assert.True(t, newerIdx >= 0)
-	assert.True(t, olderIdx >= 0)
-	assert.True(t, newerIdx < olderIdx)
+	assert.StringContains(t, html, "Featured Project")
+	assert.StringContains(t, html, `href="/posts"`)
+	assert.StringContains(t, html, `href="/projects"`)
+	assert.StringContains(t, html, `href="/about"`)
+}
 
-	// Exercises PostCard's tag-badge rendering path (the "Newer Post"
-	// fixture has tags, "Older Post" doesn't — both card layouts are covered).
-	assert.StringContains(t, html, "go")
-	assert.StringContains(t, html, "homelab")
+func TestHome_RendersWithNoFeaturedContent(t *testing.T) {
+	mockDB := &mocks.MockQuerier{
+		ListFeaturedPostsFunc: func(ctx context.Context) ([]database.Post, error) {
+			return nil, nil
+		},
+		ListFeaturedProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
+	}
+
+	app := newTestApplicationWithDB(mockDB)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	rs, err := http.Get(ts.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	assert.Equal(t, rs.StatusCode, http.StatusOK)
 }
