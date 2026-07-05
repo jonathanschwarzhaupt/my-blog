@@ -14,7 +14,7 @@ tmp_dir = "tmp"
 # Tailwind CSS, then compiles the binary, in that order.
 cmd = "make build/blog"
 entrypoint = ["./bin/blog"]
-full_bin = "./bin/blog -addr=:8080"
+full_bin = "./bin/blog -addr=:80"
 include_ext = ["go", "templ", "css"]
 exclude_dir = ["bin", "tmp", "ui/static", "docs", ".git", ".devcontainer"]
 # _templ.go is templ-generated output from .templ files handled above — if
