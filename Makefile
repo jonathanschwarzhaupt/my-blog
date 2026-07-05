@@ -10,13 +10,16 @@ help: ## print this help message
 # DEVELOPMENT
 # ==================================================================================== #
 
+run/blog: addr ?= :8080
+run/blog-admin: addr ?= :4001
+
 .PHONY: run/blog
-run/blog: css/build ## run the blog binary
-	go run ./cmd/blog -db-dsn=${BLOG_DB_DSN} -addr=":8080"
+run/blog: css/build ## run the blog binary (override port: make run/blog addr=:8081)
+	go run ./cmd/blog -db-dsn=${BLOG_DB_DSN} -addr=${addr}
 
 .PHONY: run/blog-admin
-run/blog-admin: css/build ## run the blog-admin binary
-	go run ./cmd/blog-admin -db-dsn=${BLOG_DB_DSN}
+run/blog-admin: css/build ## run the blog-admin binary (override port: make run/blog-admin addr=:4002)
+	go run ./cmd/blog-admin -db-dsn=${BLOG_DB_DSN} -addr=${addr}
 
 .PHONY: css/before_build
 css/before_build:
