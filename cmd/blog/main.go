@@ -13,6 +13,7 @@ import (
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
@@ -26,11 +27,15 @@ type application struct {
 	db      database.Querier
 	baseURL string
 
-	// metrics is always constructed, regardless of mode — operational
-	// instrumentation applies to both deployments equally and is
-	// orthogonal to the admin/public route-gating layout.Features
-	// controls.
-	metrics *httpMetrics
+	// metrics, metricsRegistry, and startedAt are always constructed,
+	// regardless of mode — operational instrumentation applies to both
+	// deployments equally and is orthogonal to the admin/public
+	// route-gating layout.Features controls. metricsRegistry backs both
+	// the /metrics endpoint (main.go) and the admin stats page
+	// (stats.go's gatherStats).
+	metrics         *httpMetrics
+	metricsRegistry *prometheus.Registry
+	startedAt       time.Time
 
 	// limiter is only constructed when the admin feature is disabled — the
 	// admin deployment is Tailscale-only, so rate limiting adds no real
@@ -88,10 +93,12 @@ func main() {
 	httpMetrics := newHTTPMetrics(metricsRegistry)
 
 	app := &application{
-		logger:  logger,
-		db:      database.New(pool),
-		baseURL: strings.TrimSuffix(baseURL, "/"),
-		metrics: httpMetrics,
+		logger:          logger,
+		db:              database.New(pool),
+		baseURL:         strings.TrimSuffix(baseURL, "/"),
+		metrics:         httpMetrics,
+		metricsRegistry: metricsRegistry,
+		startedAt:       time.Now(),
 	}
 
 	if layout.Features.Admin {

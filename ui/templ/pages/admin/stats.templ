@@ -1,0 +1,40 @@
+package admin
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/jonathanschwarzhaupt/my-blog/internal/metrics"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+)
+
+templ Stats(stats metrics.Stats) {
+	@layout.Base("Stats", "") {
+		<h1 class="text-2xl font-semibold tracking-tight">Stats</h1>
+		<p class="mt-1 text-sm text-muted-foreground">A snapshot right now — for trends over time, see Grafana.</p>
+		<dl class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+			@statCard("Version", stats.Version)
+			@statCard("Uptime", stats.Uptime.Round(time.Second).String())
+			@statCard("Goroutines", fmt.Sprintf("%.0f", stats.Goroutines))
+			@statCard("DB pool: max", fmt.Sprintf("%.0f", stats.DBPoolMaxConns))
+			@statCard("DB pool: acquired", fmt.Sprintf("%.0f", stats.DBPoolAcquired))
+			@statCard("DB pool: idle", fmt.Sprintf("%.0f", stats.DBPoolIdle))
+		</dl>
+		<h2 class="mt-8 text-lg font-semibold tracking-tight">HTTP requests by method/status</h2>
+		<dl class="mt-3 flex flex-col gap-1 text-sm">
+			for _, c := range stats.SortedHTTPRequests() {
+				<div class="flex justify-between border-b border-border py-1">
+					<dt class="text-muted-foreground">{ c.Label }</dt>
+					<dd>{ fmt.Sprintf("%.0f", c.Count) }</dd>
+				</div>
+			}
+		</dl>
+	}
+}
+
+templ statCard(label, value string) {
+	<div class="rounded-md border border-border px-4 py-3">
+		<dt class="text-xs text-muted-foreground">{ label }</dt>
+		<dd class="mt-1 text-lg font-semibold tracking-tight">{ value }</dd>
+	</div>
+}
