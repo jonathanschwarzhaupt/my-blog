@@ -42,7 +42,7 @@ func Base(title string, flash string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/css/main.css\"></head><body class=\"min-h-screen bg-background text-foreground antialiased\"><header class=\"border-b border-border\"><nav class=\"mx-auto flex max-w-3xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4 text-sm font-medium\"><a href=\"/\" class=\"text-muted-foreground transition-colors hover:text-primary\">Home</a> <a href=\"/projects\" class=\"text-muted-foreground transition-colors hover:text-primary\">Projects</a> <a href=\"/about\" class=\"text-muted-foreground transition-colors hover:text-primary\">About</a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"stylesheet\" href=\"/static/css/main.css\"></head><body class=\"min-h-screen bg-background text-foreground antialiased\"><header class=\"border-b border-border\"><nav class=\"mx-auto flex max-w-3xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4 text-sm font-medium\"><a href=\"/\" class=\"text-muted-foreground transition-colors hover:text-primary\">Home</a> <a href=\"/posts\" class=\"text-muted-foreground transition-colors hover:text-primary\">Posts</a> <a href=\"/projects\" class=\"text-muted-foreground transition-colors hover:text-primary\">Projects</a> <a href=\"/about\" class=\"text-muted-foreground transition-colors hover:text-primary\">About</a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -64,7 +64,7 @@ func Base(title string, flash string) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(flash)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/layout/base.templ`, Line: 26, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/layout/base.templ`, Line: 27, Col: 105}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {

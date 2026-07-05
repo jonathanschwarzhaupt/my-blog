@@ -1,0 +1,19 @@
+package blog
+
+import (
+	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+)
+
+templ PostsIndex(posts []models.Post) {
+	@layout.Base("Posts", "") {
+		<h1 class="mb-6 text-2xl font-semibold tracking-tight">Posts</h1>
+		<ul class="flex list-none flex-col gap-4 p-0">
+			for _, post := range posts {
+				<li>
+					@PostCard(post)
+				</li>
+			}
+		</ul>
+	}
+}

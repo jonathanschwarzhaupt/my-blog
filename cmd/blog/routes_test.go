@@ -185,12 +185,17 @@ func TestRoutes_AdminRoutesNotFoundWhenDisabled(t *testing.T) {
 	defer rs.Body.Close()
 	assert.Equal(t, rs.StatusCode, http.StatusNotFound)
 
+	// 405, not 404: GET /posts (the posts index) is registered
+	// unconditionally in both modes, so this path now has a registered
+	// method — POST just isn't one of them in public mode. Still no way to
+	// create a post; net/http returns 405 rather than 404 when a path
+	// matches but the method doesn't.
 	rs2, err := http.PostForm(ts.URL+"/posts", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer rs2.Body.Close()
-	assert.Equal(t, rs2.StatusCode, http.StatusNotFound)
+	assert.Equal(t, rs2.StatusCode, http.StatusMethodNotAllowed)
 
 	rs3, err := http.Get(ts.URL + "/projects/new")
 	if err != nil {
