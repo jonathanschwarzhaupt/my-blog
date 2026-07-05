@@ -11,12 +11,24 @@ help: ## print this help message
 # ==================================================================================== #
 
 .PHONY: run/blog
-run/blog: ## run the blog binary
+run/blog: css/build ## run the blog binary
 	go run ./cmd/blog -db-dsn=${BLOG_DB_DSN} -addr=":8080"
 
 .PHONY: run/blog-admin
-run/blog-admin: ## run the blog-admin binary
+run/blog-admin: css/build ## run the blog-admin binary
 	go run ./cmd/blog-admin -db-dsn=${BLOG_DB_DSN}
+
+.PHONY: css/before_build
+css/before_build:
+	@cp ui/static/css/main.css /tmp/main.css.before-audit 2>/dev/null || true
+
+.PHONY: css/build
+css/build: ## compile Tailwind CSS to ui/static/css/main.css
+	mise exec -- tailwindcss -i ./ui/css/input.css -o ./ui/static/css/main.css --minify
+
+.PHONY: css/watch
+css/watch: ## rebuild Tailwind CSS on file changes, for local development
+	mise exec -- tailwindcss -i ./ui/css/input.css -o ./ui/static/css/main.css --watch
 
 .PHONY: db/migrations/up
 db/migrations/up: confirm ## apply all up migrations
@@ -43,7 +55,8 @@ confirm:
 # ==================================================================================== #
 
 .PHONY: audit
-audit: ## run quality control checks
+audit: css/before_build css/build ## run quality control checks
+	@diff -q ui/static/css/main.css /tmp/main.css.before-audit >/dev/null 2>&1 && rm -f /tmp/main.css.before-audit || (rm -f /tmp/main.css.before-audit && echo "ui/static/css/main.css was stale and has been rebuilt — review and include it in your commit" && exit 1)
 	go mod tidy -diff
 	go mod verify
 	go vet ./...
@@ -64,11 +77,11 @@ tidy: ## tidy modfiles and format .go files
 linker_flags = '-s'
 
 .PHONY: build/blog
-build/blog: ## build the blog binary
+build/blog: css/build ## build the blog binary
 	go build -ldflags=${linker_flags} -o=./bin/blog ./cmd/blog
 
 .PHONY: build/blog-admin
-build/blog-admin: ## build the blog-admin binary
+build/blog-admin: css/build ## build the blog-admin binary
 	go build -ldflags=${linker_flags} -o=./bin/blog-admin ./cmd/blog-admin
 
 .PHONY: build/migrate

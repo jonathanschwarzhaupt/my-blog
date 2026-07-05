@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database/mocks"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
 func newTestApplication() *application {
@@ -21,6 +23,11 @@ func newTestApplication() *application {
 }
 
 func newTestApplicationWithDB(db database.Querier) *application {
+	// Mirrors blog-admin's main(), so tests exercise the same nav that
+	// actually ships in production rather than the shared package's
+	// zero-value default.
+	layout.Features.Admin = true
+
 	sessionManager := scs.New()
 	sessionManager.Lifetime = 12 * time.Hour
 
@@ -47,4 +54,32 @@ func TestHealthcheck(t *testing.T) {
 	assert.Equal(t, rs.StatusCode, http.StatusOK)
 	assert.Equal(t, rs.Header.Get("X-Content-Type-Options"), "nosniff")
 	assert.Equal(t, rs.Header.Get("X-Frame-Options"), "deny")
+}
+
+func TestBase_ShowsAdminNav(t *testing.T) {
+	mockDB := &mocks.MockQuerier{
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
+	}
+
+	app := newTestApplicationWithDB(mockDB)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	rs, err := http.Get(ts.URL + "/posts/new")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	html := string(body)
+	assert.StringContains(t, html, `href="/posts/new"`)
+	assert.StringContains(t, html, `href="/projects/new"`)
 }

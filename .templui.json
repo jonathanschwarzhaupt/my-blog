@@ -1,0 +1,7 @@
+{
+  "componentsDir": "ui/templ/components",
+  "utilsDir": "ui/templ/components/utils",
+  "moduleName": "github.com/jonathanschwarzhaupt/my-blog",
+  "jsDir": "ui/static/js",
+  "jsPublicPath": "/static/js"
+}

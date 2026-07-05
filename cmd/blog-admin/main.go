@@ -16,6 +16,7 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/vcs"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
 type application struct {
@@ -32,6 +33,8 @@ func main() {
 		fmt.Println(vcs.Version())
 		os.Exit(0)
 	}
+
+	layout.Features.Admin = true
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 

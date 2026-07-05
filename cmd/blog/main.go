@@ -13,6 +13,7 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/vcs"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
 type application struct {
@@ -31,6 +32,12 @@ func main() {
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	// blog doesn't serve blog-admin's write routes, so the admin nav section
+	// stays hidden — explicit rather than relying on FeatureFlags' zero
+	// value, so a future field added to FeatureFlags can't silently default
+	// to the wrong thing here.
+	layout.Features.Admin = false
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

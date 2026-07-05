@@ -4,6 +4,7 @@ go = "1.26.4"
 node = "26"
 python = "latest"
 gh = "latest"
+"aqua:tailwindlabs/tailwindcss" = "latest"
 
 [settings]
 experimental = true
