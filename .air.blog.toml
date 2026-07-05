@@ -1,4 +1,4 @@
-# Hot reload for cmd/blog during local development.
+# Hot reload for cmd/blog in public mode during local development.
 # Requires .envrc to be sourced in your shell first (same requirement as
 # running `go run ./cmd/blog` directly) — full_bin doesn't go through the
 # Makefile's own variable interpolation, so BLOG_DB_DSN must already be a
@@ -32,4 +32,4 @@ clean_on_exit = false
 [proxy]
 enabled = true
 proxy_port = 8091
-app_port = 8080
+app_port = 80

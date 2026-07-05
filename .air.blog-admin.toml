@@ -1,8 +1,9 @@
-# Hot reload for cmd/blog-admin during local development.
+# Hot reload for cmd/blog in admin mode during local development — same
+# binary as .air.blog.toml, run with -features=admin instead.
 # Requires .envrc to be sourced in your shell first (same requirement as
-# running `go run ./cmd/blog-admin` directly) — full_bin doesn't go through
-# the Makefile's own variable interpolation, so BLOG_DB_DSN must already be
-# a real environment variable for the built binary to inherit.
+# running `go run ./cmd/blog` directly) — full_bin doesn't go through the
+# Makefile's own variable interpolation, so BLOG_DB_DSN must already be a
+# real environment variable for the built binary to inherit.
 #
 # Run via `make dev/blog-admin`.
 
@@ -12,9 +13,9 @@ tmp_dir = "tmp"
 [build]
 # Reuses the existing Makefile target — regenerates templ output, rebuilds
 # Tailwind CSS, then compiles the binary, in that order.
-cmd = "make build/blog-admin"
-entrypoint = ["./bin/blog-admin"]
-full_bin = "./bin/blog-admin -addr=:4001"
+cmd = "make build/blog"
+entrypoint = ["./bin/blog"]
+full_bin = "./bin/blog -addr=:4001 -features=admin"
 include_ext = ["go", "templ", "css"]
 exclude_dir = ["bin", "tmp", "ui/static", "docs", ".git", ".devcontainer"]
 # _templ.go is templ-generated output from .templ files handled above — if

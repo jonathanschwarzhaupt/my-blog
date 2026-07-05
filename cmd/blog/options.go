@@ -19,6 +19,7 @@ type options struct {
 	limiterRPS     float64
 	limiterBurst   int
 	limiterEnabled bool
+	features       string
 	displayVersion bool
 }
 
@@ -32,9 +33,10 @@ func parseOptions() *options {
 	flag.IntVar(&opts.dbMinConns, "db-min-conns", 5, "PostgreSQL min/idle connections")
 	flag.DurationVar(&opts.dbMaxConnLife, "db-max-conn-lifetime", time.Hour, "PostgreSQL max connection lifetime")
 	flag.DurationVar(&opts.dbMaxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
-	flag.Float64Var(&opts.limiterRPS, "limiter-rps", 2, "Rate limiter requests-per-second per client")
-	flag.IntVar(&opts.limiterBurst, "limiter-burst", 4, "Rate limiter burst size per client")
-	flag.BoolVar(&opts.limiterEnabled, "limiter-enabled", true, "Enable rate limiting")
+	flag.Float64Var(&opts.limiterRPS, "limiter-rps", 2, "Rate limiter requests-per-second per client (ignored when the admin feature is active)")
+	flag.IntVar(&opts.limiterBurst, "limiter-burst", 4, "Rate limiter burst size per client (ignored when the admin feature is active)")
+	flag.BoolVar(&opts.limiterEnabled, "limiter-enabled", true, "Enable rate limiting (ignored when the admin feature is active)")
+	flag.StringVar(&opts.features, "features", "", `Comma-separated feature gates to enable, e.g. "admin"`)
 	flag.BoolVar(&opts.displayVersion, "version", false, "Display version and exit")
 
 	flag.Parse()

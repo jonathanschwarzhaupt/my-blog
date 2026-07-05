@@ -10,6 +10,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/alexedwards/scs/pgxstore"
+	"github.com/alexedwards/scs/v2"
+	"github.com/go-playground/form/v4"
+
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/vcs"
@@ -19,8 +23,18 @@ import (
 type application struct {
 	logger  *slog.Logger
 	db      database.Querier
-	limiter *rateLimiter
 	baseURL string
+
+	// limiter is only constructed when the admin feature is disabled — the
+	// admin deployment is Tailscale-only, so rate limiting adds no real
+	// security benefit there, only a chance of throttling legitimate use.
+	limiter *rateLimiter
+
+	// formDecoder and sessionManager are only constructed when the admin
+	// feature is enabled; routes() only dereferences them inside the
+	// admin-gated branch, so nil is safe otherwise.
+	formDecoder    *form.Decoder
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -33,11 +47,11 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	// blog doesn't serve blog-admin's write routes, so the admin nav section
-	// stays hidden — explicit rather than relying on FeatureFlags' zero
-	// value, so a future field added to FeatureFlags can't silently default
-	// to the wrong thing here.
-	layout.Features.Admin = false
+	features, unrecognized := parseFeatures(opts.features)
+	layout.Features = features
+	if len(unrecognized) > 0 {
+		logger.Warn("ignoring unrecognized -features entries", "unrecognized", unrecognized)
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -54,9 +68,6 @@ func main() {
 	}
 	defer pool.Close()
 
-	limiter := newRateLimiter(opts.limiterRPS, opts.limiterBurst, opts.limiterEnabled)
-	limiter.startCleanup(time.Minute, 3*time.Minute)
-
 	baseURL := opts.baseURL
 	if baseURL == "" {
 		baseURL = defaultBaseURL
@@ -68,8 +79,20 @@ func main() {
 	app := &application{
 		logger:  logger,
 		db:      database.New(pool),
-		limiter: limiter,
 		baseURL: strings.TrimSuffix(baseURL, "/"),
+	}
+
+	if layout.Features.Admin {
+		sessionManager := scs.New()
+		sessionManager.Store = pgxstore.New(pool)
+		sessionManager.Lifetime = 12 * time.Hour
+
+		app.formDecoder = form.NewDecoder()
+		app.sessionManager = sessionManager
+	} else {
+		limiter := newRateLimiter(opts.limiterRPS, opts.limiterBurst, opts.limiterEnabled)
+		limiter.startCleanup(time.Minute, 3*time.Minute)
+		app.limiter = limiter
 	}
 
 	if err := serve(ctx, app, opts.addr); err != nil {

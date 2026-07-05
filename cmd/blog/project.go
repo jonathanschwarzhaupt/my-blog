@@ -94,7 +94,7 @@ func (app *application) validateProjectIDs(ctx context.Context, form *admin.Comp
 // This isn't wrapped in a database transaction with the InsertPost/UpdatePost
 // call that precedes it: validateProjectIDs already confirmed every id
 // exists immediately before this runs, and there's currently no way to
-// delete a Project through blog-admin, so the only way this can still fail
+// delete a Project through admin mode, so the only way this can still fail
 // (a Project removed directly in the database between the check and this
 // write, or a transient connection error) is rare and, if it does happen,
 // recoverable — the Post itself is saved either way, and re-submitting the

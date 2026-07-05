@@ -11,22 +11,23 @@ help: ## print this help message
 # ==================================================================================== #
 
 run/blog: addr ?= :8080
+run/blog: features ?=
 run/blog-admin: addr ?= :4001
 
 .PHONY: run/blog
-run/blog: templ/generate css/build ## run the blog binary (override port: make run/blog addr=:8081)
-	go run ./cmd/blog -db-dsn=${BLOG_DB_DSN} -addr=${addr}
+run/blog: templ/generate css/build ## run blog (public mode by default; e.g. make run/blog features=admin addr=:4001)
+	go run ./cmd/blog -db-dsn=${BLOG_DB_DSN} -addr=${addr} -features=${features}
 
 .PHONY: run/blog-admin
-run/blog-admin: templ/generate css/build ## run the blog-admin binary (override port: make run/blog-admin addr=:4002)
-	go run ./cmd/blog-admin -db-dsn=${BLOG_DB_DSN} -addr=${addr}
+run/blog-admin: templ/generate css/build ## run blog in admin mode (shortcut for run/blog features=admin addr=:4001; override port: make run/blog-admin addr=:4002)
+	go run ./cmd/blog -db-dsn=${BLOG_DB_DSN} -addr=${addr} -features=admin
 
 .PHONY: dev/blog
-dev/blog: ## run the blog binary with hot reload (air)
+dev/blog: ## run blog in public mode with hot reload (air)
 	mise exec -- air -c .air.blog.toml
 
 .PHONY: dev/blog-admin
-dev/blog-admin: ## run the blog-admin binary with hot reload (air)
+dev/blog-admin: ## run blog in admin mode with hot reload (air)
 	mise exec -- air -c .air.blog-admin.toml
 
 .PHONY: css/before_build
@@ -92,12 +93,8 @@ tidy: ## tidy modfiles and format .go files
 linker_flags = '-s'
 
 .PHONY: build/blog
-build/blog: templ/generate css/build ## build the blog binary
+build/blog: templ/generate css/build ## build the blog binary (runs in either mode via -features)
 	go build -ldflags=${linker_flags} -o=./bin/blog ./cmd/blog
-
-.PHONY: build/blog-admin
-build/blog-admin: templ/generate css/build ## build the blog-admin binary
-	go build -ldflags=${linker_flags} -o=./bin/blog-admin ./cmd/blog-admin
 
 .PHONY: build/migrate
 build/migrate: ## build the migrate binary (used as the Kubernetes init container image)
