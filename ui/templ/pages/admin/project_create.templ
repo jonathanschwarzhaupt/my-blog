@@ -2,6 +2,11 @@ package admin
 
 import (
 	"github.com/jonathanschwarzhaupt/my-blog/internal/validator"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/alert"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/button"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/input"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/label"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/textarea"
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
@@ -13,22 +18,39 @@ type ProjectForm struct {
 
 templ ProjectCreate(form ProjectForm, flash string) {
 	@layout.Base("New Project", flash) {
-		<form method="POST" action="/projects">
-			for _, err := range form.NonFieldErrors {
-				<div class="error">{ err }</div>
-			}
-			<div>
-				<label>Name</label>
-				if err, ok := form.FieldErrors["name"]; ok {
-					<label class="error">{ err }</label>
+		<form method="POST" action="/projects" class="flex flex-col gap-4">
+			if len(form.NonFieldErrors) > 0 {
+				@alert.Alert(alert.Props{Variant: alert.VariantDestructive}) {
+					@alert.Description() {
+						for _, err := range form.NonFieldErrors {
+							<p>{ err }</p>
+						}
+					}
 				}
-				<input type="text" name="name" value={ form.Name }/>
+			}
+			<div class="flex flex-col gap-1.5">
+				@label.Label(label.Props{For: "name", Error: form.FieldErrors["name"]}) {
+					Name
+				}
+				@input.Input(input.Props{
+					ID:       "name",
+					Name:     "name",
+					Value:    form.Name,
+					HasError: form.FieldErrors["name"] != "",
+				})
+				if err, ok := form.FieldErrors["name"]; ok {
+					<p class="text-sm text-destructive">{ err }</p>
+				}
 			</div>
-			<div>
-				<label>Description</label>
-				<textarea name="description">{ form.Description }</textarea>
+			<div class="flex flex-col gap-1.5">
+				@label.Label(label.Props{For: "description"}) {
+					Description
+				}
+				@textarea.Textarea(textarea.Props{ID: "description", Name: "description", Value: form.Description, Rows: 4})
 			</div>
-			<button type="submit">Create Project</button>
+			@button.Button(button.Props{Type: button.TypeSubmit}) {
+				Create Project
+			}
 		</form>
 	}
 }
