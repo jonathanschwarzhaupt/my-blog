@@ -15,7 +15,7 @@ import (
 // warning, since a typo here (e.g. "admn") would otherwise silently deploy
 // an admin instance with no admin routes and no signal anything is wrong.
 func parseFeatures(raw string) (features layout.FeatureFlags, unrecognized []string) {
-	for _, name := range strings.Split(raw, ",") {
+	for name := range strings.SplitSeq(raw, ",") {
 		name = strings.TrimSpace(name)
 		switch name {
 		case "":
