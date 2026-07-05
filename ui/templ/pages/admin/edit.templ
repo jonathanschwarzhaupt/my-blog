@@ -11,6 +11,7 @@ import (
 
 templ Edit(form ComposeForm, slug string, allProjects []models.Project, flash string) {
 	@layout.Base("Edit", flash) {
+		@layout.BackLink("/posts/" + slug)
 		<form method="POST" action={ templ.URL("/posts/" + slug + "/edit") } class="flex flex-col gap-4">
 			if len(form.NonFieldErrors) > 0 {
 				@alert.Alert(alert.Props{Variant: alert.VariantDestructive}) {

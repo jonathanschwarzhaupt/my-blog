@@ -8,6 +8,7 @@ import (
 templ ProjectView(project models.Project, posts []models.Post) {
 	@layout.Base(project.Name, "") {
 		<article>
+			@layout.BackLink("/projects")
 			<h1 class="text-3xl font-semibold tracking-tight">{ project.Name }</h1>
 			<p class="mt-2 text-muted-foreground">{ project.Description }</p>
 			<ol class="mt-8 flex list-none flex-col gap-4 p-0">

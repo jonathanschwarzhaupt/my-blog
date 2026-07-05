@@ -12,6 +12,7 @@ import (
 templ PostView(post models.Post, bodyHTML string) {
 	@layout.Base(post.Title, "") {
 		<article>
+			@layout.BackLink("/posts")
 			<div class="flex items-start justify-between gap-4">
 				<h1 class="text-3xl font-semibold tracking-tight">{ post.Title }</h1>
 				if layout.Features.Admin {

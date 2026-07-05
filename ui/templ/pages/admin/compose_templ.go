@@ -333,7 +333,11 @@ func Compose(form ComposeForm, allProjects []models.Project, flash string) templ
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<form method=\"POST\" action=\"/posts\" class=\"flex flex-col gap-4\">")
+			templ_7745c5c3_Err = layout.BackLink("/admin").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, " <form method=\"POST\" action=\"/posts\" class=\"flex flex-col gap-4\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -370,7 +374,7 @@ func Compose(form ComposeForm, allProjects []models.Project, flash string) templ
 							var templ_7745c5c3_Var14 string
 							templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/compose.templ`, Line: 104, Col: 15}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/compose.templ`, Line: 105, Col: 15}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 							if templ_7745c5c3_Err != nil {

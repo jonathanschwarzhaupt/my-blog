@@ -10,6 +10,7 @@ import (
 
 templ Stats(stats metrics.Stats) {
 	@layout.Base("Stats", "") {
+		@layout.BackLink("/admin")
 		<h1 class="text-2xl font-semibold tracking-tight">Stats</h1>
 		<p class="mt-1 text-sm text-muted-foreground">A snapshot right now — for trends over time, see Grafana.</p>
 		<dl class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">

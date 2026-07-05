@@ -96,6 +96,7 @@ templ projectCheckboxes(allProjects []models.Project, form ComposeForm) {
 
 templ Compose(form ComposeForm, allProjects []models.Project, flash string) {
 	@layout.Base("Compose", flash) {
+		@layout.BackLink("/admin")
 		<form method="POST" action="/posts" class="flex flex-col gap-4">
 			if len(form.NonFieldErrors) > 0 {
 				@alert.Alert(alert.Props{Variant: alert.VariantDestructive}) {

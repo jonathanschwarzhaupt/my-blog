@@ -18,6 +18,7 @@ type ProjectForm struct {
 
 templ ProjectCreate(form ProjectForm, flash string) {
 	@layout.Base("New Project", flash) {
+		@layout.BackLink("/admin")
 		<form method="POST" action="/projects" class="flex flex-col gap-4">
 			if len(form.NonFieldErrors) > 0 {
 				@alert.Alert(alert.Props{Variant: alert.VariantDestructive}) {

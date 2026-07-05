@@ -1,0 +1,15 @@
+package layout
+
+import (
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/icon"
+)
+
+// BackLink is a small, icon-only "back" affordance shared by admin pages
+// (back to /admin or the item just edited) and reader-facing detail pages
+// (back to the relevant index) — not a full breadcrumb trail, just enough
+// to avoid relying on the browser's own back button.
+templ BackLink(href string) {
+	<a href={ templ.URL(href) } class="mb-4 inline-flex text-muted-foreground transition-colors hover:text-primary" aria-label="Back" title="Back">
+		@icon.ArrowLeft(icon.Props{Class: "size-5"})
+	</a>
+}

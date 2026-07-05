@@ -27,6 +27,7 @@ type FeaturedForm struct {
 
 templ ManageFeatured(form FeaturedForm, allPosts []models.Post, allProjects []models.Project, flash string) {
 	@layout.Base("Manage Featured", flash) {
+		@layout.BackLink("/admin")
 		<form method="POST" action="/admin/featured" class="flex flex-col gap-8">
 			if len(form.NonFieldErrors) > 0 {
 				@alert.Alert(alert.Props{Variant: alert.VariantDestructive}) {
