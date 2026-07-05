@@ -6,7 +6,7 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
-templ PostView(post models.Post) {
+templ PostView(post models.Post, bodyHTML string) {
 	@layout.Base(post.Title, "") {
 		<article>
 			<h1 class="text-3xl font-semibold tracking-tight">{ post.Title }</h1>
@@ -24,13 +24,12 @@ templ PostView(post models.Post) {
 				</div>
 			}
 			<!--
-				Body is stored/displayed as plain text (no markdown renderer
-				exists yet), so whitespace-pre-wrap is what preserves the
-				author's paragraph/line breaks — without it, HTML collapses
-				all whitespace and the body reads as one run-on blob
-				regardless of prose's typography styling.
+				bodyHTML is post.Body already rendered from markdown
+				(internal/markdown, called by the handler) — safe to embed
+				as-is via templ.Raw since goldmark's default (non-unsafe)
+				rendering already drops any raw HTML from the source.
 			-->
-			<div class="prose prose-neutral mt-8 max-w-none whitespace-pre-wrap">{ post.Body }</div>
+			<div class="prose prose-neutral mt-8 max-w-none">@templ.Raw(bodyHTML)</div>
 		</article>
 	}
 }

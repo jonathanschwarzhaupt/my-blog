@@ -274,6 +274,16 @@ Styling is [templui](https://templui.io) (a templ component library) on top of T
 - **One accent color**, set once as CSS custom properties in `ui/css/input.css`'s `:root` block (templui's built-in "blue" palette, chosen as a reasonable default) — no dark mode, no theme switching, no per-component color overrides. Swapping the accent later means changing the values in that one block, not touching any `.templ` file.
 - **`ui/templ/components/utils/templui.go`** (copied by `templui init`) provides small helpers like `utils.TwMerge` for conflict-resolving combined Tailwind classes — use it when a component's classes are built up conditionally rather than hand-rolling string concatenation.
 
+### Post body markdown (`internal/markdown`)
+
+Post `Body` is stored and edited as plain markdown source — no schema change, no change to the compose/edit forms. Rendering to HTML happens at **display time only**, in `postView` (`cmd/blog/post_view.go`), via `internal/markdown.Render` (wraps [goldmark](https://github.com/yuin/goldmark) with the GFM extension bundle — tables, strikethrough, autolinks, task lists; fenced code blocks are core CommonMark, no extension needed). The rendered HTML string is passed into `PostView` as a second parameter and embedded with `@templ.Raw(bodyHTML)` — `templ.Raw` is templ's own runtime type, already imported into every generated file, so don't add an explicit `"github.com/a-h/templ"` import to the `.templ` source itself (it'll collide: `templ redeclared in this block`).
+
+**Raw HTML in post source is dropped, not escaped or rendered** — goldmark's default behavior with `html.WithUnsafe()` left off (deliberately not enabled): both block-level and inline raw HTML are replaced with an `<!-- raw HTML omitted -->` comment. This is a single-trusted-author blog, so passthrough wouldn't really be "unsafe" in the usual multi-user sense, but there's no concrete need for it in post content, and leaving it off closes the question before it's ever asked.
+
+Rendering errors from `markdown.Render` map to `serverError`, same as any other handler failure — not a silent fallback to the raw markdown text. In practice this is rare: CommonMark parsers render best-effort on malformed syntax rather than failing, so `Convert` only errors on genuine writer-level failures.
+
+Not yet done, deliberately out of scope for now: syntax highlighting for code blocks (`goldmark-highlighting` + `chroma` is a meaningfully heavier dependency than goldmark alone), a live preview in the compose/edit form, and markdown rendering for `SoWhat` or Project descriptions (both stay plain text).
+
 ### Shared-layout feature flags (`ui/templ/layout/features.go`)
 
 `layout.Features` (a package-level `FeatureFlags` struct, currently just `Admin bool`) gates both which nav sections `base.templ` renders *and* which routes `routes()` registers (see ADR-0003) — the one deliberate package-level global in the codebase (see Dependency injection above). `main()` sets it once at startup from the parsed `-features` flag, before serving any requests, and it's never mutated afterward. Because the public routes (Home, Projects, About, feed) are always registered regardless of mode, admin mode's nav links to them are real links, not dead ones — unlike the old two-binary arrangement, where `blog-admin` rendered those links without actually serving them.

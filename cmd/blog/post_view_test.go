@@ -60,3 +60,39 @@ func TestPostView_RendersPost(t *testing.T) {
 	assert.StringContains(t, html, "go")
 	assert.StringContains(t, html, "blog")
 }
+
+func TestPostView_RendersMarkdownBody(t *testing.T) {
+	mockDB := &mocks.MockQuerier{
+		GetPostFunc: func(ctx context.Context, slug string) (database.Post, error) {
+			return database.Post{
+				ID:          1,
+				Title:       "Hello World",
+				Slug:        "hello-world",
+				Body:        "**bold** and a [link](https://example.com)",
+				SoWhat:      "It matters because reasons",
+				Version:     1,
+				PublishedAt: pgtype.Timestamptz{Time: time.Now(), Valid: true},
+			}, nil
+		},
+	}
+
+	app := newTestApplicationWithDB(mockDB)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	rs, err := http.Get(ts.URL + "/posts/hello-world")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	html := string(body)
+	assert.StringContains(t, html, "<strong>bold</strong>")
+	assert.StringContains(t, html, `<a href="https://example.com">link</a>`)
+}

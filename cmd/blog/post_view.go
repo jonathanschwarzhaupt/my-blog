@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jonathanschwarzhaupt/my-blog/internal/markdown"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/pages/blog"
 )
@@ -29,5 +30,11 @@ func (app *application) postView(w http.ResponseWriter, r *http.Request) {
 
 	post := models.PostFromDatabase(dbPost)
 
-	app.render(w, r, http.StatusOK, blog.PostView(post))
+	bodyHTML, err := markdown.Render(post.Body)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	app.render(w, r, http.StatusOK, blog.PostView(post, bodyHTML))
 }

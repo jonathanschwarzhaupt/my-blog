@@ -14,7 +14,7 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
-func PostView(post models.Post) templ.Component {
+func PostView(post models.Post, bodyHTML string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -116,16 +116,11 @@ func PostView(post models.Post) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<!--\n\t\t\t\tBody is stored/displayed as plain text (no markdown renderer\n\t\t\t\texists yet), so whitespace-pre-wrap is what preserves the\n\t\t\t\tauthor's paragraph/line breaks — without it, HTML collapses\n\t\t\t\tall whitespace and the body reads as one run-on blob\n\t\t\t\tregardless of prose's typography styling.\n\t\t\t--><div class=\"prose prose-neutral mt-8 max-w-none whitespace-pre-wrap\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<!--\n\t\t\t\tbodyHTML is post.Body already rendered from markdown\n\t\t\t\t(internal/markdown, called by the handler) — safe to embed\n\t\t\t\tas-is via templ.Raw since goldmark's default (non-unsafe)\n\t\t\t\trendering already drops any raw HTML from the source.\n\t\t\t--><div class=\"prose prose-neutral mt-8 max-w-none\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(post.Body)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/blog/post_view.templ`, Line: 33, Col: 83}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			templ_7745c5c3_Err = templ.Raw(bodyHTML).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
