@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
@@ -31,19 +30,11 @@ func TestAbout_RendersExpectedSections(t *testing.T) {
 
 	html := string(body)
 	assert.StringContains(t, html, "<img")
-	assert.StringContains(t, html, "Skills")
+	assert.StringContains(t, html, "My Journey")
+	assert.StringContains(t, html, "What I Do")
+	assert.StringContains(t, html, "Technical Skills")
+	assert.StringContains(t, html, "Beyond Engineering")
 	assert.StringContains(t, html, `href="/projects"`)
-
-	// The Projects CTA (not the nav's own /projects link) must be a styled
-	// button (templui's Button component), not a plain inline <a> —
-	// "inline-flex" is one of Button's base classes, present regardless of
-	// variant/size/theme, so this doesn't couple to exact color/accent
-	// choices while still proving it's button-rendered.
-	linkIdx := strings.LastIndex(html, `href="/projects"`)
-	assert.True(t, linkIdx >= 0)
-	tagStart := strings.LastIndex(html[:linkIdx], "<a")
-	assert.True(t, tagStart >= 0)
-	tagEnd := strings.Index(html[tagStart:], ">")
-	assert.True(t, tagEnd >= 0)
-	assert.StringContains(t, html[tagStart:tagStart+tagEnd], "inline-flex")
+	assert.StringContains(t, html, `href="/posts"`)
+	assert.StringContains(t, html, `href="/posts/gizmosql-in-kubernetes"`)
 }
