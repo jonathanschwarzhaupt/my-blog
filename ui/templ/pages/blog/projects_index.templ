@@ -1,13 +1,48 @@
 package blog
 
 import (
+	"strconv"
+
 	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/button"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/input"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/label"
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
-templ ProjectsIndex(projects []models.Project) {
+templ ProjectsIndex(projects []models.Project, filters ProjectFilters, totalPages int) {
 	@layout.Base("Projects", "") {
 		<h1 class="mb-6 text-2xl font-semibold tracking-tight">Projects</h1>
+		<form method="GET" action="/projects" class="mb-4 flex flex-wrap items-end gap-3">
+			if filters.Sort == "oldest" {
+				<input type="hidden" name="sort" value="oldest"/>
+			}
+			<div class="flex flex-col gap-1.5">
+				@label.Label(label.Props{For: "from"}) {
+					From
+				}
+				@input.Input(input.Props{ID: "from", Name: "from", Type: input.TypeDate, Value: filters.From})
+			</div>
+			<div class="flex flex-col gap-1.5">
+				@label.Label(label.Props{For: "to"}) {
+					To
+				}
+				@input.Input(input.Props{ID: "to", Name: "to", Type: input.TypeDate, Value: filters.To})
+			</div>
+			@button.Button(button.Props{Type: button.TypeSubmit, Variant: button.VariantOutline}) {
+				Filter
+			}
+			if filters.From != "" || filters.To != "" {
+				<a href={ templ.URL(filters.ClearDateRangeLink()) } class="text-sm text-muted-foreground hover:underline">Clear dates</a>
+			}
+		</form>
+		<div class="mb-6 flex gap-4 text-sm">
+			<a href={ templ.URL(filters.SortLink("newest")) } class={ sortLinkClass(filters.Sort == "newest") }>Newest first</a>
+			<a href={ templ.URL(filters.SortLink("oldest")) } class={ sortLinkClass(filters.Sort == "oldest") }>Oldest first</a>
+		</div>
+		if len(projects) == 0 {
+			<p class="text-muted-foreground">No projects match these filters.</p>
+		}
 		<ul class="flex list-none flex-col gap-4 p-0">
 			for _, project := range projects {
 				<li>
@@ -15,5 +50,24 @@ templ ProjectsIndex(projects []models.Project) {
 				</li>
 			}
 		</ul>
+		@projectsPagination(filters, totalPages)
+	}
+}
+
+templ projectsPagination(filters ProjectFilters, totalPages int) {
+	if totalPages > 1 {
+		<div class="mt-6 flex items-center justify-between text-sm">
+			<div>
+				if filters.Page > 1 {
+					<a href={ templ.URL(filters.PageLink(filters.Page - 1)) } class="text-primary hover:underline">Previous</a>
+				}
+			</div>
+			<span class="text-muted-foreground">Page { strconv.Itoa(filters.Page) } of { strconv.Itoa(totalPages) }</span>
+			<div>
+				if filters.Page < totalPages {
+					<a href={ templ.URL(filters.PageLink(filters.Page + 1)) } class="text-primary hover:underline">Next</a>
+				}
+			</div>
+		</div>
 	}
 }

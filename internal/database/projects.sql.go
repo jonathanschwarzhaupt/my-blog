@@ -258,6 +258,69 @@ func (q *Queries) ListProjects(ctx context.Context) ([]Project, error) {
 	return items, nil
 }
 
+const listProjectsFiltered = `-- name: ListProjectsFiltered :many
+SELECT id, name, slug, description, featured_rank, created_at, count(*) OVER() AS total_count FROM projects
+WHERE ($1::timestamptz IS NULL OR created_at >= $1)
+  AND ($2::timestamptz IS NULL OR created_at <= $2)
+ORDER BY
+  CASE WHEN $3::bool THEN created_at END ASC,
+  CASE WHEN NOT $3::bool THEN created_at END DESC,
+  id ASC
+LIMIT $5 OFFSET $4
+`
+
+type ListProjectsFilteredParams struct {
+	FromDate   pgtype.Timestamptz
+	ToDate     pgtype.Timestamptz
+	SortOldest bool
+	PageOffset int32
+	PageLimit  int32
+}
+
+type ListProjectsFilteredRow struct {
+	ID           int64
+	Name         string
+	Slug         string
+	Description  string
+	FeaturedRank pgtype.Int4
+	CreatedAt    pgtype.Timestamptz
+	TotalCount   int64
+}
+
+func (q *Queries) ListProjectsFiltered(ctx context.Context, arg ListProjectsFilteredParams) ([]ListProjectsFilteredRow, error) {
+	rows, err := q.db.Query(ctx, listProjectsFiltered,
+		arg.FromDate,
+		arg.ToDate,
+		arg.SortOldest,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListProjectsFilteredRow
+	for rows.Next() {
+		var i ListProjectsFilteredRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Slug,
+			&i.Description,
+			&i.FeaturedRank,
+			&i.CreatedAt,
+			&i.TotalCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setFeaturedProject = `-- name: SetFeaturedProject :exec
 UPDATE projects SET featured_rank = $1 WHERE id = $2
 `

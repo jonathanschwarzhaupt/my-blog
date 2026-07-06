@@ -26,6 +26,7 @@ type Querier interface {
 	ListPostsByProjectSlug(ctx context.Context, slug string) ([]Post, error)
 	ListPostsFiltered(ctx context.Context, arg ListPostsFilteredParams) ([]ListPostsFilteredRow, error)
 	ListProjects(ctx context.Context) ([]Project, error)
+	ListProjectsFiltered(ctx context.Context, arg ListProjectsFilteredParams) ([]ListProjectsFilteredRow, error)
 	SetFeaturedPost(ctx context.Context, arg SetFeaturedPostParams) error
 	SetFeaturedProject(ctx context.Context, arg SetFeaturedProjectParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)

@@ -16,6 +16,7 @@ type MockQuerier struct {
 	InsertProjectFunc          func(ctx context.Context, arg database.InsertProjectParams) (database.Project, error)
 	GetProjectBySlugFunc       func(ctx context.Context, slug string) (database.Project, error)
 	ListProjectsFunc           func(ctx context.Context) ([]database.Project, error)
+	ListProjectsFilteredFunc   func(ctx context.Context, arg database.ListProjectsFilteredParams) ([]database.ListProjectsFilteredRow, error)
 	GetProjectsByIDsFunc       func(ctx context.Context, ids []int64) ([]database.Project, error)
 	GetProjectsForPostFunc     func(ctx context.Context, postID int64) ([]database.Project, error)
 	ListPostsByProjectSlugFunc func(ctx context.Context, slug string) ([]database.Post, error)
@@ -63,6 +64,10 @@ func (m *MockQuerier) GetProjectBySlug(ctx context.Context, slug string) (databa
 
 func (m *MockQuerier) ListProjects(ctx context.Context) ([]database.Project, error) {
 	return m.ListProjectsFunc(ctx)
+}
+
+func (m *MockQuerier) ListProjectsFiltered(ctx context.Context, arg database.ListProjectsFilteredParams) ([]database.ListProjectsFilteredRow, error) {
+	return m.ListProjectsFilteredFunc(ctx, arg)
 }
 
 func (m *MockQuerier) GetProjectsByIDs(ctx context.Context, ids []int64) ([]database.Project, error) {

@@ -9,6 +9,16 @@ SELECT * FROM projects WHERE slug = $1;
 -- name: ListProjects :many
 SELECT * FROM projects ORDER BY name ASC;
 
+-- name: ListProjectsFiltered :many
+SELECT *, count(*) OVER() AS total_count FROM projects
+WHERE (sqlc.narg('from_date')::timestamptz IS NULL OR created_at >= sqlc.narg('from_date'))
+  AND (sqlc.narg('to_date')::timestamptz IS NULL OR created_at <= sqlc.narg('to_date'))
+ORDER BY
+  CASE WHEN sqlc.arg('sort_oldest')::bool THEN created_at END ASC,
+  CASE WHEN NOT sqlc.arg('sort_oldest')::bool THEN created_at END DESC,
+  id ASC
+LIMIT sqlc.arg('page_limit') OFFSET sqlc.arg('page_offset');
+
 -- name: GetProjectsByIDs :many
 SELECT * FROM projects WHERE id = ANY(sqlc.arg(ids)::bigint[]);
 
