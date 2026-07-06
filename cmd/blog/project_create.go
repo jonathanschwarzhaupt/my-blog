@@ -69,7 +69,7 @@ func (app *application) projectCreatePost(w http.ResponseWriter, r *http.Request
 // always valid — a Post may belong to zero Projects. The returned error is
 // only non-nil for a genuine DB failure; an invalid-but-checkable selection
 // is reported on the form itself, not via the return value.
-func (app *application) validateProjectIDs(ctx context.Context, form *admin.ComposeForm) error {
+func (app *application) validateProjectIDs(ctx context.Context, form *admin.PostForm) error {
 	if len(form.ProjectIDs) == 0 {
 		return nil
 	}

@@ -3,6 +3,7 @@ package layout
 import (
 	"bytes"
 	"context"
+	"html"
 	"strings"
 	"testing"
 )
@@ -14,11 +15,14 @@ func TestBase_RendersOneOfTheKnownQuipsInFooter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	html := buf.String()
+	rendered := buf.String()
 
+	// templ HTML-escapes text content (e.g. "it's" -> "it&#39;s"), so a
+	// quip containing an apostrophe never matches a plain, unescaped
+	// substring check — compare against the escaped form instead.
 	found := false
 	for _, q := range footerQuips {
-		if strings.Contains(html, q) {
+		if strings.Contains(rendered, html.EscapeString(q)) {
 			found = true
 			break
 		}

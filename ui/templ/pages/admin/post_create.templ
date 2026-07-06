@@ -17,7 +17,7 @@ import (
 
 // Version is only meaningful on the edit path (optimistic concurrency) — it's
 // decoded and ignored on the create path since InsertPost never reads it.
-type ComposeForm struct {
+type PostForm struct {
 	Version             int32   `form:"version"`
 	Title               string  `form:"title"`
 	Body                string  `form:"body"`
@@ -28,12 +28,12 @@ type ComposeForm struct {
 }
 
 // Validate runs the shared field checks for both the create and edit forms.
-func (f *ComposeForm) Validate() {
+func (f *PostForm) Validate() {
 	f.CheckField(validator.NotBlank(f.Title), "title", "This field cannot be blank")
 	f.CheckField(validator.NotBlank(f.SoWhat), "so_what", "This field cannot be blank")
 }
 
-templ formFields(form ComposeForm) {
+templ formFields(form PostForm) {
 	<div class="flex flex-col gap-1.5">
 		@label.Label(label.Props{For: "title", Error: form.FieldErrors["title"]}) {
 			Title
@@ -76,7 +76,7 @@ templ formFields(form ComposeForm) {
 	</div>
 }
 
-templ projectCheckboxes(allProjects []models.Project, form ComposeForm) {
+templ projectCheckboxes(allProjects []models.Project, form PostForm) {
 	if len(allProjects) > 0 {
 		<fieldset class="flex flex-col gap-2">
 			<legend class="text-sm font-medium">Projects</legend>
@@ -94,8 +94,8 @@ templ projectCheckboxes(allProjects []models.Project, form ComposeForm) {
 	}
 }
 
-templ Compose(form ComposeForm, allProjects []models.Project, flash string) {
-	@layout.Base("Compose", flash) {
+templ PostCreate(form PostForm, allProjects []models.Project, flash string) {
+	@layout.Base("New Post", flash) {
 		@layout.BackLink("/admin")
 		<form method="POST" action="/posts" class="flex flex-col gap-4">
 			if len(form.NonFieldErrors) > 0 {

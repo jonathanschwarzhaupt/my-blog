@@ -25,7 +25,7 @@ import (
 
 // Version is only meaningful on the edit path (optimistic concurrency) — it's
 // decoded and ignored on the create path since InsertPost never reads it.
-type ComposeForm struct {
+type PostForm struct {
 	Version             int32   `form:"version"`
 	Title               string  `form:"title"`
 	Body                string  `form:"body"`
@@ -36,12 +36,12 @@ type ComposeForm struct {
 }
 
 // Validate runs the shared field checks for both the create and edit forms.
-func (f *ComposeForm) Validate() {
+func (f *PostForm) Validate() {
 	f.CheckField(validator.NotBlank(f.Title), "title", "This field cannot be blank")
 	f.CheckField(validator.NotBlank(f.SoWhat), "so_what", "This field cannot be blank")
 }
 
-func formFields(form ComposeForm) templ.Component {
+func formFields(form PostForm) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -105,7 +105,7 @@ func formFields(form ComposeForm) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/compose.templ`, Line: 48, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/post_create.templ`, Line: 48, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -189,7 +189,7 @@ func formFields(form ComposeForm) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/compose.templ`, Line: 68, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/post_create.templ`, Line: 68, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -238,7 +238,7 @@ func formFields(form ComposeForm) templ.Component {
 	})
 }
 
-func projectCheckboxes(allProjects []models.Project, form ComposeForm) templ.Component {
+func projectCheckboxes(allProjects []models.Project, form PostForm) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -280,7 +280,7 @@ func projectCheckboxes(allProjects []models.Project, form ComposeForm) templ.Com
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(p.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/compose.templ`, Line: 90, Col: 13}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/post_create.templ`, Line: 90, Col: 13}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -300,7 +300,7 @@ func projectCheckboxes(allProjects []models.Project, form ComposeForm) templ.Com
 	})
 }
 
-func Compose(form ComposeForm, allProjects []models.Project, flash string) templ.Component {
+func PostCreate(form PostForm, allProjects []models.Project, flash string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -374,7 +374,7 @@ func Compose(form ComposeForm, allProjects []models.Project, flash string) templ
 							var templ_7745c5c3_Var14 string
 							templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/compose.templ`, Line: 105, Col: 15}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/admin/post_create.templ`, Line: 105, Col: 15}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 							if templ_7745c5c3_Err != nil {
@@ -434,7 +434,7 @@ func Compose(form ComposeForm, allProjects []models.Project, flash string) templ
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = layout.Base("Compose", flash).Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = layout.Base("New Post", flash).Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

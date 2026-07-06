@@ -45,7 +45,7 @@ func (app *application) postEdit(w http.ResponseWriter, r *http.Request) {
 		currentProjectIDs[i] = p.ID
 	}
 
-	form := admin.ComposeForm{
+	form := admin.PostForm{
 		Version:    dbPost.Version,
 		Title:      dbPost.Title,
 		Body:       dbPost.Body,
@@ -55,7 +55,7 @@ func (app *application) postEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	flash := app.sessionManager.PopString(r.Context(), "flash")
-	app.render(w, r, http.StatusOK, admin.Edit(form, slug, allProjects, flash))
+	app.render(w, r, http.StatusOK, admin.PostEdit(form, slug, allProjects, flash))
 }
 
 func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
@@ -66,7 +66,7 @@ func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var form admin.ComposeForm
+	var form admin.PostForm
 	if err := app.formDecoder.Decode(&form, r.PostForm); err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
@@ -89,7 +89,7 @@ func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			return
 		}
-		app.render(w, r, http.StatusUnprocessableEntity, admin.Edit(form, slug, allProjects, ""))
+		app.render(w, r, http.StatusUnprocessableEntity, admin.PostEdit(form, slug, allProjects, ""))
 		return
 	}
 
@@ -128,7 +128,7 @@ func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
 			if !ok {
 				return
 			}
-			app.render(w, r, http.StatusConflict, admin.Edit(form, slug, allProjects, ""))
+			app.render(w, r, http.StatusConflict, admin.PostEdit(form, slug, allProjects, ""))
 			return
 		}
 		app.serverError(w, r, err)
@@ -143,7 +143,7 @@ func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
 			if !ok {
 				return
 			}
-			app.render(w, r, http.StatusUnprocessableEntity, admin.Edit(form, slug, allProjects, ""))
+			app.render(w, r, http.StatusUnprocessableEntity, admin.PostEdit(form, slug, allProjects, ""))
 			return
 		}
 		app.serverError(w, r, err)

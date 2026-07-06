@@ -20,9 +20,9 @@ func (app *application) postCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	form := admin.ComposeForm{}
+	form := admin.PostForm{}
 	flash := app.sessionManager.PopString(r.Context(), "flash")
-	app.render(w, r, http.StatusOK, admin.Compose(form, allProjects, flash))
+	app.render(w, r, http.StatusOK, admin.PostCreate(form, allProjects, flash))
 }
 
 func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +31,7 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var form admin.ComposeForm
+	var form admin.PostForm
 	if err := app.formDecoder.Decode(&form, r.PostForm); err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
@@ -57,7 +57,7 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			return
 		}
-		app.render(w, r, http.StatusUnprocessableEntity, admin.Compose(form, allProjects, ""))
+		app.render(w, r, http.StatusUnprocessableEntity, admin.PostCreate(form, allProjects, ""))
 		return
 	}
 
@@ -76,7 +76,7 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 			if !ok {
 				return
 			}
-			app.render(w, r, http.StatusUnprocessableEntity, admin.Compose(form, allProjects, ""))
+			app.render(w, r, http.StatusUnprocessableEntity, admin.PostCreate(form, allProjects, ""))
 			return
 		}
 		app.serverError(w, r, err)
@@ -91,7 +91,7 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 			if !ok {
 				return
 			}
-			app.render(w, r, http.StatusUnprocessableEntity, admin.Compose(form, allProjects, ""))
+			app.render(w, r, http.StatusUnprocessableEntity, admin.PostCreate(form, allProjects, ""))
 			return
 		}
 		app.serverError(w, r, err)
