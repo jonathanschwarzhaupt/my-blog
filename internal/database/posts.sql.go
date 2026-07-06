@@ -148,6 +148,75 @@ func (q *Queries) ListPosts(ctx context.Context) ([]Post, error) {
 	return items, nil
 }
 
+const listPostsFiltered = `-- name: ListPostsFiltered :many
+SELECT id, title, slug, body, so_what, tags, version, published_at, featured_rank, count(*) OVER() AS total_count FROM posts
+WHERE ($1::timestamptz IS NULL OR published_at >= $1)
+  AND ($2::timestamptz IS NULL OR published_at <= $2)
+ORDER BY
+  CASE WHEN $3::bool THEN published_at END ASC,
+  CASE WHEN NOT $3::bool THEN published_at END DESC,
+  id ASC
+LIMIT $5 OFFSET $4
+`
+
+type ListPostsFilteredParams struct {
+	FromDate   pgtype.Timestamptz
+	ToDate     pgtype.Timestamptz
+	SortOldest bool
+	PageOffset int32
+	PageLimit  int32
+}
+
+type ListPostsFilteredRow struct {
+	ID           int64
+	Title        string
+	Slug         string
+	Body         string
+	SoWhat       string
+	Tags         []string
+	Version      int32
+	PublishedAt  pgtype.Timestamptz
+	FeaturedRank pgtype.Int4
+	TotalCount   int64
+}
+
+func (q *Queries) ListPostsFiltered(ctx context.Context, arg ListPostsFilteredParams) ([]ListPostsFilteredRow, error) {
+	rows, err := q.db.Query(ctx, listPostsFiltered,
+		arg.FromDate,
+		arg.ToDate,
+		arg.SortOldest,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPostsFilteredRow
+	for rows.Next() {
+		var i ListPostsFilteredRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Slug,
+			&i.Body,
+			&i.SoWhat,
+			&i.Tags,
+			&i.Version,
+			&i.PublishedAt,
+			&i.FeaturedRank,
+			&i.TotalCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setFeaturedPost = `-- name: SetFeaturedPost :exec
 UPDATE posts SET featured_rank = $1 WHERE id = $2
 `

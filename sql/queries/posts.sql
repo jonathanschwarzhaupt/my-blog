@@ -9,6 +9,16 @@ SELECT * FROM posts WHERE slug = $1;
 -- name: ListPosts :many
 SELECT * FROM posts ORDER BY published_at DESC, id ASC;
 
+-- name: ListPostsFiltered :many
+SELECT *, count(*) OVER() AS total_count FROM posts
+WHERE (sqlc.narg('from_date')::timestamptz IS NULL OR published_at >= sqlc.narg('from_date'))
+  AND (sqlc.narg('to_date')::timestamptz IS NULL OR published_at <= sqlc.narg('to_date'))
+ORDER BY
+  CASE WHEN sqlc.arg('sort_oldest')::bool THEN published_at END ASC,
+  CASE WHEN NOT sqlc.arg('sort_oldest')::bool THEN published_at END DESC,
+  id ASC
+LIMIT sqlc.arg('page_limit') OFFSET sqlc.arg('page_offset');
+
 -- name: UpdatePost :one
 UPDATE posts
 SET title = $1, body = $2, so_what = $3, tags = $4, published_at = $5, version = version + 1
