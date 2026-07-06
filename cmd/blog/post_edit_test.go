@@ -7,8 +7,10 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
@@ -22,13 +24,14 @@ func TestPostEdit_LoadsExistingPost(t *testing.T) {
 		GetPostFunc: func(ctx context.Context, slug string) (database.Post, error) {
 			gotSlug = slug
 			return database.Post{
-				ID:      42,
-				Title:   "Original Title",
-				Slug:    "original-title",
-				Body:    "Original body",
-				SoWhat:  "Original so what",
-				Tags:    []string{"go", "homelab"},
-				Version: 3,
+				ID:          42,
+				Title:       "Original Title",
+				Slug:        "original-title",
+				Body:        "Original body",
+				SoWhat:      "Original so what",
+				Tags:        []string{"go", "homelab"},
+				Version:     3,
+				PublishedAt: pgtype.Timestamptz{Time: time.Date(2020, time.June, 15, 0, 0, 0, 0, time.UTC), Valid: true},
 			}, nil
 		},
 		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
@@ -64,6 +67,7 @@ func TestPostEdit_LoadsExistingPost(t *testing.T) {
 	assert.StringContains(t, html, "Original so what")
 	assert.StringContains(t, html, "go, homelab")
 	assert.StringContains(t, html, `value="3"`)
+	assert.StringContains(t, html, `value="2020-06-15"`)
 }
 
 func TestPostUpdate_Valid(t *testing.T) {
@@ -106,6 +110,7 @@ func TestPostUpdate_Valid(t *testing.T) {
 	form.Set("body", "Updated body")
 	form.Set("so_what", "Updated so what")
 	form.Set("tags", "go, updated")
+	form.Set("published_at", "2026-01-01")
 
 	rs, err := client.PostForm(ts.URL+"/posts/original-title/edit", form)
 	if err != nil {
@@ -123,6 +128,8 @@ func TestPostUpdate_Valid(t *testing.T) {
 	assert.Equal(t, len(gotParams.Tags), 2)
 	assert.Equal(t, gotParams.Tags[0], "go")
 	assert.Equal(t, gotParams.Tags[1], "updated")
+	assert.Equal(t, gotParams.PublishedAt.Valid, true)
+	assert.Equal(t, gotParams.PublishedAt.Time.Format("2006-01-02"), "2026-01-01")
 }
 
 func TestPostUpdate_StaleVersionConflict(t *testing.T) {
@@ -151,6 +158,7 @@ func TestPostUpdate_StaleVersionConflict(t *testing.T) {
 	form.Set("title", "Updated Title")
 	form.Set("body", "Updated body")
 	form.Set("so_what", "Updated so what")
+	form.Set("published_at", "2026-01-01")
 
 	rs, err := http.PostForm(ts.URL+"/posts/original-title/edit", form)
 	if err != nil {

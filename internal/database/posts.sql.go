@@ -42,17 +42,18 @@ func (q *Queries) GetPost(ctx context.Context, slug string) (Post, error) {
 }
 
 const insertPost = `-- name: InsertPost :one
-INSERT INTO posts (title, slug, body, so_what, tags)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO posts (title, slug, body, so_what, tags, published_at)
+VALUES ($1, $2, $3, $4, $5, COALESCE($6::timestamptz, now()))
 RETURNING id, title, slug, body, so_what, tags, version, published_at, featured_rank
 `
 
 type InsertPostParams struct {
-	Title  string
-	Slug   string
-	Body   string
-	SoWhat string
-	Tags   []string
+	Title       string
+	Slug        string
+	Body        string
+	SoWhat      string
+	Tags        []string
+	PublishedAt pgtype.Timestamptz
 }
 
 func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, error) {
@@ -62,6 +63,7 @@ func (q *Queries) InsertPost(ctx context.Context, arg InsertPostParams) (Post, e
 		arg.Body,
 		arg.SoWhat,
 		arg.Tags,
+		arg.PublishedAt,
 	)
 	var i Post
 	err := row.Scan(
@@ -162,18 +164,19 @@ func (q *Queries) SetFeaturedPost(ctx context.Context, arg SetFeaturedPostParams
 
 const updatePost = `-- name: UpdatePost :one
 UPDATE posts
-SET title = $1, body = $2, so_what = $3, tags = $4, version = version + 1
-WHERE id = $5 AND version = $6
+SET title = $1, body = $2, so_what = $3, tags = $4, published_at = $5, version = version + 1
+WHERE id = $6 AND version = $7
 RETURNING id, title, slug, body, so_what, tags, version, published_at, featured_rank
 `
 
 type UpdatePostParams struct {
-	Title   string
-	Body    string
-	SoWhat  string
-	Tags    []string
-	ID      int64
-	Version int32
+	Title       string
+	Body        string
+	SoWhat      string
+	Tags        []string
+	PublishedAt pgtype.Timestamptz
+	ID          int64
+	Version     int32
 }
 
 func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error) {
@@ -182,6 +185,7 @@ func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, e
 		arg.Body,
 		arg.SoWhat,
 		arg.Tags,
+		arg.PublishedAt,
 		arg.ID,
 		arg.Version,
 	)

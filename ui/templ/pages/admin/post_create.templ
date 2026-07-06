@@ -24,6 +24,7 @@ type PostForm struct {
 	SoWhat              string  `form:"so_what"`
 	Tags                string  `form:"tags"`
 	ProjectIDs          []int64 `form:"project_ids"`
+	PublishedAt         string  `form:"published_at"`
 	validator.Validator `form:"-"`
 }
 
@@ -73,6 +74,23 @@ templ formFields(form PostForm) {
 			Tags (comma-separated)
 		}
 		@input.Input(input.Props{ID: "tags", Name: "tags", Value: form.Tags})
+	</div>
+	<div class="flex flex-col gap-1.5">
+		@label.Label(label.Props{For: "published_at", Error: form.FieldErrors["published_at"]}) {
+			Published
+		}
+		@input.Input(input.Props{
+			ID:       "published_at",
+			Name:     "published_at",
+			Type:     input.TypeDate,
+			Value:    form.PublishedAt,
+			HasError: form.FieldErrors["published_at"] != "",
+		})
+		if err, ok := form.FieldErrors["published_at"]; ok {
+			<p class="text-sm text-destructive">{ err }</p>
+		} else {
+			<p class="text-sm text-muted-foreground">Leave blank to use today's date.</p>
+		}
 	</div>
 }
 

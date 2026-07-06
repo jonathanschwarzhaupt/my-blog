@@ -46,12 +46,13 @@ func (app *application) postEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	form := admin.PostForm{
-		Version:    dbPost.Version,
-		Title:      dbPost.Title,
-		Body:       dbPost.Body,
-		SoWhat:     dbPost.SoWhat,
-		Tags:       strings.Join(dbPost.Tags, ", "),
-		ProjectIDs: currentProjectIDs,
+		Version:     dbPost.Version,
+		Title:       dbPost.Title,
+		Body:        dbPost.Body,
+		SoWhat:      dbPost.SoWhat,
+		Tags:        strings.Join(dbPost.Tags, ", "),
+		ProjectIDs:  currentProjectIDs,
+		PublishedAt: dbPost.PublishedAt.Time.Format("2006-01-02"),
 	}
 
 	flash := app.sessionManager.PopString(r.Context(), "flash")
@@ -73,6 +74,10 @@ func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	form.Validate()
+
+	publishedAt, ok := parseOptionalDate(form.PublishedAt)
+	form.CheckField(ok, "published_at", "Must be a valid date")
+	form.CheckField(form.PublishedAt != "", "published_at", "This field cannot be blank")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -109,12 +114,13 @@ func (app *application) postUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = app.db.UpdatePost(ctx, database.UpdatePostParams{
-		Title:   form.Title,
-		Body:    form.Body,
-		SoWhat:  form.SoWhat,
-		Tags:    splitTags(form.Tags),
-		ID:      dbPost.ID,
-		Version: form.Version,
+		Title:       form.Title,
+		Body:        form.Body,
+		SoWhat:      form.SoWhat,
+		Tags:        splitTags(form.Tags),
+		PublishedAt: publishedAt,
+		ID:          dbPost.ID,
+		Version:     form.Version,
 	})
 	if err != nil {
 		if errors.Is(models.WrapDBError(err), models.ErrNoRecord) {

@@ -2,8 +2,10 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/a-h/templ"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func (app *application) serverError(w http.ResponseWriter, r *http.Request, err error) {
@@ -30,4 +32,19 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	if err := component.Render(r.Context(), w); err != nil {
 		app.logger.Error(err.Error(), "request_id", requestIDFromContext(r.Context()), "method", r.Method, "uri", r.URL.RequestURI())
 	}
+}
+
+// parseOptionalDate parses a "YYYY-MM-DD" date-input value into a nullable
+// SQL param. A blank string is a valid "not provided" case (Valid: false,
+// letting COALESCE(..., now()) apply at the SQL layer) rather than an error;
+// a non-blank string that fails to parse is the only failure case.
+func parseOptionalDate(s string) (pgtype.Timestamptz, bool) {
+	if s == "" {
+		return pgtype.Timestamptz{}, true
+	}
+	t, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		return pgtype.Timestamptz{}, false
+	}
+	return pgtype.Timestamptz{Time: t, Valid: true}, true
 }

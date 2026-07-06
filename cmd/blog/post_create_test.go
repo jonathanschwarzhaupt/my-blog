@@ -72,6 +72,140 @@ func TestPostCreatePost_Valid(t *testing.T) {
 	assert.Equal(t, gotParams.Tags[1], "blog")
 }
 
+func TestPostCreatePost_ExplicitPublishedAt(t *testing.T) {
+	var gotParams database.InsertPostParams
+
+	mockDB := &mocks.MockQuerier{
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
+		InsertPostFunc: func(ctx context.Context, arg database.InsertPostParams) (database.Post, error) {
+			gotParams = arg
+			return database.Post{ID: 1, Title: arg.Title, Slug: arg.Slug, SoWhat: arg.SoWhat, Version: 1}, nil
+		},
+		DeletePostProjectsFunc: func(ctx context.Context, postID int64) error {
+			return nil
+		},
+	}
+
+	app := newTestApplicationWithDB(mockDB)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	client := ts.Client()
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	form := url.Values{}
+	form.Set("title", "Ported Post")
+	form.Set("body", "Body")
+	form.Set("so_what", "It matters")
+	form.Set("published_at", "2020-06-15")
+
+	rs, err := client.PostForm(ts.URL+"/posts", form)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	assert.Equal(t, rs.StatusCode, http.StatusSeeOther)
+
+	if !gotParams.PublishedAt.Valid {
+		t.Fatal("got PublishedAt.Valid = false; want true (explicit date was provided)")
+	}
+	assert.Equal(t, gotParams.PublishedAt.Time.Format("2006-01-02"), "2020-06-15")
+}
+
+func TestPostCreatePost_BlankPublishedAtLeavesDateUnset(t *testing.T) {
+	var gotParams database.InsertPostParams
+
+	mockDB := &mocks.MockQuerier{
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
+		InsertPostFunc: func(ctx context.Context, arg database.InsertPostParams) (database.Post, error) {
+			gotParams = arg
+			return database.Post{ID: 1, Title: arg.Title, Slug: arg.Slug, SoWhat: arg.SoWhat, Version: 1}, nil
+		},
+		DeletePostProjectsFunc: func(ctx context.Context, postID int64) error {
+			return nil
+		},
+	}
+
+	app := newTestApplicationWithDB(mockDB)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	client := ts.Client()
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	form := url.Values{}
+	form.Set("title", "Fresh Post")
+	form.Set("body", "Body")
+	form.Set("so_what", "It matters")
+	// published_at deliberately omitted
+
+	rs, err := client.PostForm(ts.URL+"/posts", form)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	assert.Equal(t, rs.StatusCode, http.StatusSeeOther)
+
+	// Leaving PublishedAt.Valid = false is exactly what lets the SQL layer's
+	// COALESCE(..., now()) fall through to the column default — this test
+	// only needs to confirm the handler didn't invent a value on its own.
+	if gotParams.PublishedAt.Valid {
+		t.Fatal("got PublishedAt.Valid = true; want false (no date was provided, so the DB default should apply)")
+	}
+}
+
+func TestPostCreatePost_InvalidPublishedAtRejected(t *testing.T) {
+	insertCallCount := 0
+
+	mockDB := &mocks.MockQuerier{
+		ListProjectsFunc: func(ctx context.Context) ([]database.Project, error) {
+			return nil, nil
+		},
+		InsertPostFunc: func(ctx context.Context, arg database.InsertPostParams) (database.Post, error) {
+			insertCallCount++
+			return database.Post{}, nil
+		},
+	}
+
+	app := newTestApplicationWithDB(mockDB)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	form := url.Values{}
+	form.Set("title", "Hello World")
+	form.Set("body", "Body")
+	form.Set("so_what", "It matters")
+	form.Set("published_at", "not-a-date")
+
+	rs, err := http.PostForm(ts.URL+"/posts", form)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, rs.StatusCode, http.StatusUnprocessableEntity)
+	assert.Equal(t, insertCallCount, 0)
+	assert.StringContains(t, string(body), "Must be a valid date")
+}
+
 func TestPostCreatePost_BlankSoWhat(t *testing.T) {
 	insertCalled := false
 

@@ -42,6 +42,9 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 	slug := slugify(form.Title)
 	form.CheckField(slug != "", "title", "Title must contain at least one letter or number")
 
+	publishedAt, ok := parseOptionalDate(form.PublishedAt)
+	form.CheckField(ok, "published_at", "Must be a valid date")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -62,11 +65,12 @@ func (app *application) postCreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	post, err := app.db.InsertPost(ctx, database.InsertPostParams{
-		Title:  form.Title,
-		Slug:   slug,
-		Body:   form.Body,
-		SoWhat: form.SoWhat,
-		Tags:   splitTags(form.Tags),
+		Title:       form.Title,
+		Slug:        slug,
+		Body:        form.Body,
+		SoWhat:      form.SoWhat,
+		Tags:        splitTags(form.Tags),
+		PublishedAt: publishedAt,
 	})
 	if err != nil {
 		err = models.WrapDBError(err)

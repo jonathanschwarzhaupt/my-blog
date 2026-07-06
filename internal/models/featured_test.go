@@ -168,3 +168,51 @@ func TestListProjects_CreatedAtIsPopulated(t *testing.T) {
 		}
 	}
 }
+
+func TestInsertPost_ExplicitPublishedAtIsStoredAsGiven(t *testing.T) {
+	pool := realTestPool(t)
+	ctx := t.Context()
+	q := database.New(pool)
+
+	explicit := time.Date(2019, time.March, 4, 0, 0, 0, 0, time.UTC)
+
+	post, err := q.InsertPost(ctx, database.InsertPostParams{
+		Title:       "Backdating integration test post",
+		Slug:        "backdating-integration-test-post",
+		Body:        "body",
+		SoWhat:      "it matters",
+		Tags:        []string{},
+		PublishedAt: pgtype.Timestamptz{Time: explicit, Valid: true},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { pool.Exec(context.Background(), "DELETE FROM posts WHERE id = $1", post.ID) })
+
+	assert.Equal(t, post.PublishedAt.Time.Format("2006-01-02"), "2019-03-04")
+}
+
+func TestInsertPost_OmittedPublishedAtDefaultsToNow(t *testing.T) {
+	pool := realTestPool(t)
+	ctx := t.Context()
+	q := database.New(pool)
+
+	before := time.Now().Add(-time.Minute)
+
+	post, err := q.InsertPost(ctx, database.InsertPostParams{
+		Title:  "Backdating integration test post (default)",
+		Slug:   "backdating-integration-test-post-default",
+		Body:   "body",
+		SoWhat: "it matters",
+		Tags:   []string{},
+		// PublishedAt deliberately left as the zero value (Valid: false)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { pool.Exec(context.Background(), "DELETE FROM posts WHERE id = $1", post.ID) })
+
+	if post.PublishedAt.Time.Before(before) {
+		t.Fatalf("got PublishedAt %v; want it close to now (after %v)", post.PublishedAt.Time, before)
+	}
+}

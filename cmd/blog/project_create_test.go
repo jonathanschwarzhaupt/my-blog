@@ -333,6 +333,7 @@ func TestPostUpdate_RejectsNonexistentProject(t *testing.T) {
 	form.Set("body", "body")
 	form.Set("so_what", "it matters")
 	form.Set("project_ids", "999")
+	form.Set("published_at", "2026-01-01")
 
 	rs, err := http.PostForm(ts.URL+"/posts/some-post/edit", form)
 	if err != nil {
@@ -383,6 +384,7 @@ func TestPostUpdate_RemovesAllProjectAssociations(t *testing.T) {
 	form.Set("title", "Updated Title")
 	form.Set("body", "body")
 	form.Set("so_what", "it matters")
+	form.Set("published_at", "2026-01-01")
 
 	client := ts.Client()
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
