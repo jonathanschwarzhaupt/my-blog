@@ -53,6 +53,116 @@ func TestProjectCreatePost_Valid(t *testing.T) {
 	assert.Equal(t, gotParams.Description, "Everything about running my own infrastructure.")
 }
 
+func TestProjectCreatePost_ExplicitCreatedAt(t *testing.T) {
+	var gotParams database.InsertProjectParams
+
+	mockDB := &mocks.MockQuerier{
+		InsertProjectFunc: func(ctx context.Context, arg database.InsertProjectParams) (database.Project, error) {
+			gotParams = arg
+			return database.Project{ID: 1, Name: arg.Name, Slug: arg.Slug}, nil
+		},
+	}
+
+	app := newTestApplicationWithDB(mockDB)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	client := ts.Client()
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	form := url.Values{}
+	form.Set("name", "Old Project")
+	form.Set("created_at", "2018-09-01")
+
+	rs, err := client.PostForm(ts.URL+"/projects", form)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	assert.Equal(t, rs.StatusCode, http.StatusSeeOther)
+
+	if !gotParams.CreatedAt.Valid {
+		t.Fatal("got CreatedAt.Valid = false; want true (explicit date was provided)")
+	}
+	assert.Equal(t, gotParams.CreatedAt.Time.Format("2006-01-02"), "2018-09-01")
+}
+
+func TestProjectCreatePost_BlankCreatedAtLeavesDateUnset(t *testing.T) {
+	var gotParams database.InsertProjectParams
+
+	mockDB := &mocks.MockQuerier{
+		InsertProjectFunc: func(ctx context.Context, arg database.InsertProjectParams) (database.Project, error) {
+			gotParams = arg
+			return database.Project{ID: 1, Name: arg.Name, Slug: arg.Slug}, nil
+		},
+	}
+
+	app := newTestApplicationWithDB(mockDB)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	client := ts.Client()
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	form := url.Values{}
+	form.Set("name", "Fresh Project")
+	// created_at deliberately omitted
+
+	rs, err := client.PostForm(ts.URL+"/projects", form)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	assert.Equal(t, rs.StatusCode, http.StatusSeeOther)
+
+	if gotParams.CreatedAt.Valid {
+		t.Fatal("got CreatedAt.Valid = true; want false (no date was provided, so the DB default should apply)")
+	}
+}
+
+func TestProjectCreatePost_InvalidCreatedAtRejected(t *testing.T) {
+	insertCallCount := 0
+
+	mockDB := &mocks.MockQuerier{
+		InsertProjectFunc: func(ctx context.Context, arg database.InsertProjectParams) (database.Project, error) {
+			insertCallCount++
+			return database.Project{}, nil
+		},
+	}
+
+	app := newTestApplicationWithDB(mockDB)
+
+	ts := httptest.NewServer(app.routes())
+	defer ts.Close()
+
+	form := url.Values{}
+	form.Set("name", "Homelab")
+	form.Set("created_at", "not-a-date")
+
+	rs, err := http.PostForm(ts.URL+"/projects", form)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs.Body.Close()
+
+	body, err := io.ReadAll(rs.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, rs.StatusCode, http.StatusUnprocessableEntity)
+	assert.Equal(t, insertCallCount, 0)
+	assert.StringContains(t, string(body), "Must be a valid date")
+}
+
 func TestProjectCreatePost_BlankName(t *testing.T) {
 	insertCalled := false
 

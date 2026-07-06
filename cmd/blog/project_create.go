@@ -35,6 +35,9 @@ func (app *application) projectCreatePost(w http.ResponseWriter, r *http.Request
 	slug := slugify(form.Name)
 	form.CheckField(slug != "", "name", "Name must contain at least one letter or number")
 
+	createdAt, ok := parseOptionalDate(form.CreatedAt)
+	form.CheckField(ok, "created_at", "Must be a valid date")
+
 	if !form.Valid() {
 		app.render(w, r, http.StatusUnprocessableEntity, admin.ProjectCreate(form, ""))
 		return
@@ -47,6 +50,7 @@ func (app *application) projectCreatePost(w http.ResponseWriter, r *http.Request
 		Name:        form.Name,
 		Slug:        slug,
 		Description: form.Description,
+		CreatedAt:   createdAt,
 	})
 	if err != nil {
 		err = models.WrapDBError(err)

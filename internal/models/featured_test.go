@@ -216,3 +216,45 @@ func TestInsertPost_OmittedPublishedAtDefaultsToNow(t *testing.T) {
 		t.Fatalf("got PublishedAt %v; want it close to now (after %v)", post.PublishedAt.Time, before)
 	}
 }
+
+func TestInsertProject_ExplicitCreatedAtIsStoredAsGiven(t *testing.T) {
+	pool := realTestPool(t)
+	ctx := t.Context()
+	q := database.New(pool)
+
+	explicit := time.Date(2017, time.November, 20, 0, 0, 0, 0, time.UTC)
+
+	project, err := q.InsertProject(ctx, database.InsertProjectParams{
+		Name:      "Backdating integration test project",
+		Slug:      "backdating-integration-test-project",
+		CreatedAt: pgtype.Timestamptz{Time: explicit, Valid: true},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { pool.Exec(context.Background(), "DELETE FROM projects WHERE id = $1", project.ID) })
+
+	assert.Equal(t, project.CreatedAt.Time.Format("2006-01-02"), "2017-11-20")
+}
+
+func TestInsertProject_OmittedCreatedAtDefaultsToNow(t *testing.T) {
+	pool := realTestPool(t)
+	ctx := t.Context()
+	q := database.New(pool)
+
+	before := time.Now().Add(-time.Minute)
+
+	project, err := q.InsertProject(ctx, database.InsertProjectParams{
+		Name: "Backdating integration test project (default)",
+		Slug: "backdating-integration-test-project-default",
+		// CreatedAt deliberately left as the zero value (Valid: false)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { pool.Exec(context.Background(), "DELETE FROM projects WHERE id = $1", project.ID) })
+
+	if project.CreatedAt.Time.Before(before) {
+		t.Fatalf("got CreatedAt %v; want it close to now (after %v)", project.CreatedAt.Time, before)
+	}
+}

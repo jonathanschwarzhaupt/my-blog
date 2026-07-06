@@ -13,6 +13,7 @@ import (
 type ProjectForm struct {
 	Name                string `form:"name"`
 	Description         string `form:"description"`
+	CreatedAt           string `form:"created_at"`
 	validator.Validator `form:"-"`
 }
 
@@ -48,6 +49,23 @@ templ ProjectCreate(form ProjectForm, flash string) {
 					Description
 				}
 				@textarea.Textarea(textarea.Props{ID: "description", Name: "description", Value: form.Description, Rows: 4})
+			</div>
+			<div class="flex flex-col gap-1.5">
+				@label.Label(label.Props{For: "created_at", Error: form.FieldErrors["created_at"]}) {
+					Created
+				}
+				@input.Input(input.Props{
+					ID:       "created_at",
+					Name:     "created_at",
+					Type:     input.TypeDate,
+					Value:    form.CreatedAt,
+					HasError: form.FieldErrors["created_at"] != "",
+				})
+				if err, ok := form.FieldErrors["created_at"]; ok {
+					<p class="text-sm text-destructive">{ err }</p>
+				} else {
+					<p class="text-sm text-muted-foreground">Leave blank to use today's date.</p>
+				}
 			</div>
 			@button.Button(button.Props{Type: button.TypeSubmit}) {
 				Create Project

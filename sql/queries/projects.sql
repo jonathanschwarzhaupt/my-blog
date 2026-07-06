@@ -1,6 +1,6 @@
 -- name: InsertProject :one
-INSERT INTO projects (name, slug, description)
-VALUES ($1, $2, $3)
+INSERT INTO projects (name, slug, description, created_at)
+VALUES ($1, $2, $3, COALESCE(sqlc.narg('created_at')::timestamptz, now()))
 RETURNING *;
 
 -- name: GetProjectBySlug :one

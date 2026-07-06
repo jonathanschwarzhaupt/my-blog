@@ -127,8 +127,8 @@ func (q *Queries) InsertPostProject(ctx context.Context, arg InsertPostProjectPa
 }
 
 const insertProject = `-- name: InsertProject :one
-INSERT INTO projects (name, slug, description)
-VALUES ($1, $2, $3)
+INSERT INTO projects (name, slug, description, created_at)
+VALUES ($1, $2, $3, COALESCE($4::timestamptz, now()))
 RETURNING id, name, slug, description, featured_rank, created_at
 `
 
@@ -136,10 +136,16 @@ type InsertProjectParams struct {
 	Name        string
 	Slug        string
 	Description string
+	CreatedAt   pgtype.Timestamptz
 }
 
 func (q *Queries) InsertProject(ctx context.Context, arg InsertProjectParams) (Project, error) {
-	row := q.db.QueryRow(ctx, insertProject, arg.Name, arg.Slug, arg.Description)
+	row := q.db.QueryRow(ctx, insertProject,
+		arg.Name,
+		arg.Slug,
+		arg.Description,
+		arg.CreatedAt,
+	)
 	var i Project
 	err := row.Scan(
 		&i.ID,
