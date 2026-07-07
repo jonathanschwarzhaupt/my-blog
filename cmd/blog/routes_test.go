@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
 	"github.com/jonathanschwarzhaupt/my-blog/internal/database/mocks"
+	"github.com/jonathanschwarzhaupt/my-blog/internal/vcs"
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
@@ -91,20 +93,42 @@ func TestRoutes_RequestIDFlowsThroughToLogRecord(t *testing.T) {
 }
 
 func TestHealthcheck(t *testing.T) {
-	app := newTestApplication()
-
-	ts := httptest.NewServer(app.routes())
-	defer ts.Close()
-
-	rs, err := http.Get(ts.URL + "/health")
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name     string
+		newApp   func() *application
+		wantMode string
+	}{
+		{name: "admin mode", newApp: newTestApplication, wantMode: "admin"},
+		{name: "public mode", newApp: func() *application { return newTestPublicApplicationWithDB(&mocks.MockQuerier{}) }, wantMode: "public"},
 	}
-	defer rs.Body.Close()
 
-	assert.Equal(t, rs.StatusCode, http.StatusOK)
-	assert.Equal(t, rs.Header.Get("X-Content-Type-Options"), "nosniff")
-	assert.Equal(t, rs.Header.Get("X-Frame-Options"), "deny")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := tt.newApp()
+			ts := httptest.NewServer(app.routes())
+			defer ts.Close()
+
+			rs, err := http.Get(ts.URL + "/health")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer rs.Body.Close()
+
+			assert.Equal(t, rs.StatusCode, http.StatusOK)
+			assert.Equal(t, rs.Header.Get("X-Content-Type-Options"), "nosniff")
+			assert.Equal(t, rs.Header.Get("X-Frame-Options"), "deny")
+			assert.Equal(t, rs.Header.Get("Content-Type"), "application/json")
+
+			var body healthcheckResponse
+			if err := json.NewDecoder(rs.Body).Decode(&body); err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, body.Status, "available")
+			assert.Equal(t, body.Mode, tt.wantMode)
+			assert.Equal(t, body.Version, vcs.Version())
+		})
+	}
 }
 
 func TestBase_ShowsAdminNav(t *testing.T) {
