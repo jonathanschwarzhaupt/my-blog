@@ -12,6 +12,11 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/icon"
 )
 
+// footerControlClass is the shared icon+label styling for every interactive
+// control in the footer (contact links, the Stay Connected trigger) — one
+// definition so the footer's look changes in one place, not several.
+const footerControlClass = "inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary"
+
 // footerLink is one entry in the footer's contact-links row. newTab is false
 // for the mailto: link — it opens the visitor's mail client rather than
 // navigating anywhere, so target="_blank"/rel="noopener noreferrer" (needed
@@ -55,16 +60,21 @@ func FooterLinks() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, l := range footerLinks {
+			var templ_7745c5c3_Var2 = []any{footerControlClass}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var2 templ.SafeURL
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(l.href))
+			var templ_7745c5c3_Var3 templ.SafeURL
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(l.href))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/layout/footer_links.templ`, Line: 28, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/layout/footer_links.templ`, Line: 33, Col: 28}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -78,7 +88,20 @@ func FooterLinks() templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " class=\"inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var2).String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/layout/footer_links.templ`, Line: 1, Col: 0}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -86,25 +109,25 @@ func FooterLinks() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(l.label)
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(l.label)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/layout/footer_links.templ`, Line: 36, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/layout/footer_links.templ`, Line: 41, Col: 19}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</span></a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span></a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

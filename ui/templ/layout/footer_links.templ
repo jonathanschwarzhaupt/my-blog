@@ -4,6 +4,11 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/icon"
 )
 
+// footerControlClass is the shared icon+label styling for every interactive
+// control in the footer (contact links, the Stay Connected trigger) — one
+// definition so the footer's look changes in one place, not several.
+const footerControlClass = "inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary"
+
 // footerLink is one entry in the footer's contact-links row. newTab is false
 // for the mailto: link — it opens the visitor's mail client rather than
 // navigating anywhere, so target="_blank"/rel="noopener noreferrer" (needed
@@ -30,7 +35,7 @@ templ FooterLinks() {
 					target="_blank"
 					rel="noopener noreferrer"
 				}
-				class="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary"
+				class={ footerControlClass }
 			>
 				@l.icon(icon.Props{Class: "size-4"})
 				<span>{ l.label }</span>

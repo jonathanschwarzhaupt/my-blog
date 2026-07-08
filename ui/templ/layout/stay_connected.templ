@@ -1,0 +1,35 @@
+package layout
+
+import (
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/icon"
+	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/components/popover"
+)
+
+// comingSoonMessage is the popover shown for the not-yet-real mailing list —
+// wry rather than a flat "Coming soon", matching footerQuips' tone.
+const comingSoonMessage = "There's no mailing list yet — I built the button before the infrastructure, as one does."
+
+// StayConnected is a mailing-list signup control that does nothing yet — the
+// list itself doesn't exist. It uses aria-disabled rather than the native
+// disabled attribute (see ADR-0004) because native disabled suppresses
+// hover/focus in most browsers, which would silently break the "coming
+// soon" popover below. A plain, un-wired <button type="button"> already
+// does nothing on click, so no click handling is needed to keep it inert.
+templ StayConnected() {
+	@popover.Script()
+	@popover.Root() {
+		@popover.Trigger(popover.TriggerProps{TriggerType: popover.TriggerTypeHover}) {
+			<button
+				type="button"
+				aria-disabled="true"
+				class={ footerControlClass }
+			>
+				@icon.MailPlus(icon.Props{Class: "size-4"})
+				<span>Stay Connected</span>
+			</button>
+		}
+		@popover.Content(popover.ContentProps{Placement: popover.PlacementTop, ShowArrow: true, Class: "p-3"}) {
+			{ comingSoonMessage }
+		}
+	}
+}
