@@ -5,17 +5,14 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
-// About renders the real bio content — the image is still a placeholder
-// (swap /static/images/profile-placeholder.svg for a real photo whenever
-// one's ready); the copy itself is not a placeholder.
 templ About() {
 	@layout.Base("About", "") {
 		<article>
 			<h1 class="text-2xl font-semibold tracking-tight">About Me</h1>
 			<div class="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start">
 				<img
-					src="/static/images/profile-placeholder.svg"
-					alt="Placeholder profile photo, to be replaced with a real one"
+					src="/static/images/profile.jpg"
+					alt="Jonathan Schwarzhaupt"
 					width="160"
 					height="160"
 					class="h-40 w-40 shrink-0 rounded-full border border-border object-cover"
