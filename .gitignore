@@ -3,4 +3,6 @@
 bin/
 tmp/
 docs/references/**
+docs/blog-posts/**
+docs/profile-pic/**
 **/.DS_STORE
