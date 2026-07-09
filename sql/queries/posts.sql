@@ -29,6 +29,9 @@ SET title = $1, body = $2, so_what = $3, tags = $4, published_at = $5, version =
 WHERE id = $6 AND version = $7
 RETURNING *;
 
+-- name: DeletePost :execrows
+DELETE FROM posts WHERE id = $1;
+
 -- name: ListFeaturedPosts :many
 SELECT * FROM posts WHERE featured_rank IS NOT NULL ORDER BY featured_rank ASC;
 

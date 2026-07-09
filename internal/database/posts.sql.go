@@ -20,6 +20,18 @@ func (q *Queries) ClearFeaturedPosts(ctx context.Context) error {
 	return err
 }
 
+const deletePost = `-- name: DeletePost :execrows
+DELETE FROM posts WHERE id = $1
+`
+
+func (q *Queries) DeletePost(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.Exec(ctx, deletePost, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getPost = `-- name: GetPost :one
 SELECT id, title, slug, body, so_what, tags, version, published_at, featured_rank FROM posts WHERE slug = $1
 `

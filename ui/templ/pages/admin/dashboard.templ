@@ -4,8 +4,8 @@ import (
 	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
 )
 
-templ Dashboard() {
-	@layout.Base("Admin", "") {
+templ Dashboard(flash string) {
+	@layout.Base("Admin", flash) {
 		@layout.BackLink("/")
 		<h1 class="text-2xl font-semibold tracking-tight">Admin</h1>
 		<ul class="mt-6 flex list-none flex-col gap-3 p-0 text-sm">

@@ -45,10 +45,9 @@ templ PostView(post models.Post, bodyHTML string) {
 	}
 }
 
-// postAdminMenu is a kebab menu scaffolded to grow — Edit today, Delete
-// (its own future PRD: route, handler, confirmation flow, cascading
-// effects on post_projects all need their own design pass) slots in here
-// later without redesigning the interaction pattern.
+// postAdminMenu is a kebab menu scaffolded to grow — Edit and Delete today,
+// more admin actions can slot in here later without redesigning the
+// interaction pattern.
 templ postAdminMenu(slug string) {
 	@dropdown.Script()
 	@dropdown.Dropdown() {
@@ -64,6 +63,14 @@ templ postAdminMenu(slug string) {
 					Edit
 				</span>
 			}
+			<form method="POST" action={ templ.SafeURL("/posts/" + slug + "/delete") } onsubmit="return confirm('Delete this post? This cannot be undone.')">
+				@dropdown.Item(dropdown.ItemProps{Class: "w-full text-destructive", Attributes: templ.Attributes{"type": "submit"}}) {
+					<span class="flex items-center gap-2">
+						@icon.Trash2(icon.Props{Class: "size-4"})
+						Delete
+					</span>
+				}
+			</form>
 		}
 	}
 }

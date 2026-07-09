@@ -11,6 +11,7 @@ import (
 type Querier interface {
 	ClearFeaturedPosts(ctx context.Context) error
 	ClearFeaturedProjects(ctx context.Context) error
+	DeletePost(ctx context.Context, id int64) (int64, error)
 	DeletePostProjects(ctx context.Context, postID int64) error
 	GetPost(ctx context.Context, slug string) (Post, error)
 	GetProjectBySlug(ctx context.Context, slug string) (Project, error)
