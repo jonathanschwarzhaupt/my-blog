@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database"
 )
 
 type Project struct {

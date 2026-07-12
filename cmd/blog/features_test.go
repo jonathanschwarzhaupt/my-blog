@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
 )
 
 func TestParseFeatures(t *testing.T) {

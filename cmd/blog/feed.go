@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/models"
 )
 
 type rssFeed struct {

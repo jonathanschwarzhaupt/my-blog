@@ -5,8 +5,8 @@ import (
 
 	"github.com/justinas/alice"
 
-	"github.com/jonathanschwarzhaupt/my-blog/ui"
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+	"github.com/jonathanschwarzhaupt/home-blog/ui"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/layout"
 )
 
 func (app *application) routes() http.Handler {

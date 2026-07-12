@@ -11,9 +11,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database/mocks"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database/mocks"
 )
 
 func TestPostCreatePost_Valid(t *testing.T) {

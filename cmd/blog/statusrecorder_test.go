@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
 )
 
 func TestStatusRecorder_CapturesExplicitWriteHeader(t *testing.T) {

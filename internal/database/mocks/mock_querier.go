@@ -3,7 +3,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database"
 )
 
 type MockQuerier struct {

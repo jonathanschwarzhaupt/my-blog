@@ -1,4 +1,4 @@
-module github.com/jonathanschwarzhaupt/my-blog
+module github.com/jonathanschwarzhaupt/home-blog
 
 go 1.26.4
 

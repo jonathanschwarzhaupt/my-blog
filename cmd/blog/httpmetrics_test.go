@@ -7,7 +7,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
 )
 
 func TestHTTPMetrics_RecordsRequestCountAndDuration(t *testing.T) {

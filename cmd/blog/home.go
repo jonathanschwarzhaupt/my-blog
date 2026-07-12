@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/pages/blog"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/pages/blog"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {

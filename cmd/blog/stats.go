@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/metrics"
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/pages/admin"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/metrics"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/pages/admin"
 )
 
 func (app *application) stats(w http.ResponseWriter, r *http.Request) {

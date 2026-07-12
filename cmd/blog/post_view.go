@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/markdown"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/pages/blog"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/markdown"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/pages/blog"
 )
 
 func (app *application) postView(w http.ResponseWriter, r *http.Request) {

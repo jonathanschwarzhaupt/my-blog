@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/pages/blog"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/pages/blog"
 )
 
 func (app *application) about(w http.ResponseWriter, r *http.Request) {

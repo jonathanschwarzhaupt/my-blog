@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
 )
 
 func TestServe_GracefulShutdown(t *testing.T) {

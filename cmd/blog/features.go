@@ -3,7 +3,7 @@ package main
 import (
 	"strings"
 
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/layout"
 )
 
 // parseFeatures turns a comma-separated -features flag value (e.g.

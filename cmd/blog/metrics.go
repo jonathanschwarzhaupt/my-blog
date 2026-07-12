@@ -4,7 +4,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/vcs"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/vcs"
 )
 
 // newMetricsRegistry builds a Prometheus registry with the Go runtime and

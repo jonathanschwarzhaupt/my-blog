@@ -3,7 +3,7 @@ package validator
 import (
 	"testing"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
 )
 
 func TestNotBlank(t *testing.T) {

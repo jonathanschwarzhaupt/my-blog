@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
 )
 
 func TestFormatPostDate_RendersISOFormat(t *testing.T) {

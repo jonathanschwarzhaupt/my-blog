@@ -16,11 +16,11 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database/mocks"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/vcs"
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database/mocks"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/vcs"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/layout"
 )
 
 func newTestApplication() *application {

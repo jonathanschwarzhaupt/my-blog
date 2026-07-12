@@ -11,9 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/models"
 )
 
 func realTestPool(t *testing.T) *pgxpool.Pool {

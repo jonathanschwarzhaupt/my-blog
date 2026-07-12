@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/pages/blog"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/pages/blog"
 )
 
 // styleNotFound intercepts any 404 response — whether from app.notFound

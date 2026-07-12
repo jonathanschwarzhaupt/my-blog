@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/vcs"
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/layout"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/vcs"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/layout"
 )
 
 type healthcheckResponse struct {

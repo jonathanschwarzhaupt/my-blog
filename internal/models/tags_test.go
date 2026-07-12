@@ -9,8 +9,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database"
 )
 
 // seedPostsWithTags inserts one post per entry in tagSets (each with a

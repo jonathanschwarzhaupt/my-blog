@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
 )
 
 // recordingHandler is a minimal slog.Handler that captures every record

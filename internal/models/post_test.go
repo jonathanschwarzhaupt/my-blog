@@ -6,8 +6,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database"
 )
 
 func TestPostFromDatabase(t *testing.T) {

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/database"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/models"
-	"github.com/jonathanschwarzhaupt/my-blog/ui/templ/pages/blog"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/database"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/pages/blog"
 )
 
 func (app *application) projectsIndex(w http.ResponseWriter, r *http.Request) {

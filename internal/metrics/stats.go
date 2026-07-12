@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/vcs"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/vcs"
 )
 
 // Stats is a "right now" snapshot. Nothing is withheld here; the frontend

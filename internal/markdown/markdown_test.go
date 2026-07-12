@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jonathanschwarzhaupt/my-blog/internal/assert"
-	"github.com/jonathanschwarzhaupt/my-blog/internal/markdown"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/assert"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/markdown"
 )
 
 func TestRender(t *testing.T) {
