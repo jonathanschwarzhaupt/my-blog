@@ -10,12 +10,19 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
+	"github.com/jonathanschwarzhaupt/home-blog/internal/vcs"
 	"github.com/jonathanschwarzhaupt/home-blog/sql/schema"
 )
 
 func main() {
 	dsn := flag.String("db-dsn", os.Getenv("BLOG_DB_DSN"), "PostgreSQL DSN")
+	displayVersion := flag.Bool("version", false, "Display version and exit")
 	flag.Parse()
+
+	if *displayVersion {
+		fmt.Println(vcs.Version())
+		os.Exit(0)
+	}
 
 	args := flag.Args()
 	if len(args) < 1 {

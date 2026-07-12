@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1
+
+# Build stage runs natively on the build platform (no QEMU emulation) and
+# cross-compiles for the target platform via Go's own GOOS/GOARCH support —
+# buildx populates TARGETOS/TARGETARCH automatically per requested platform.
+FROM --platform=$BUILDPLATFORM golang:1.26 AS build
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+# .git must be present in the build context (see .dockerignore — it is
+# deliberately not excluded) so Go's own VCS build-info stamping populates
+# internal/vcs.Version() correctly; no ldflags-based version injection.
+COPY . .
+
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -ldflags='-s' -o /out/migrate ./cmd/migrate
+
+# distroless/static: no shell (minimal attack surface), CA cert bundle
+# present (needed for Neon's sslmode=require TLS) — same base image as
+# cmd/blog's own Dockerfile, for the same reason.
+FROM gcr.io/distroless/static-debian12
+COPY --from=build /out/migrate /migrate
+ENTRYPOINT ["/migrate"]
