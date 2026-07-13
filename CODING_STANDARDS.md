@@ -386,3 +386,46 @@ Served via `http.FileServerFS(ui.Files)`. No template embedding needed (templ co
 - `exclude_regex = ["_templ\\.go$", "_test\\.go$"]` is load-bearing, not cosmetic: `cmd`'s own `templ generate` step rewrites `_templ.go` files on every rebuild, and without excluding them from the watch, that rewrite would immediately retrigger another rebuild — an infinite loop.
 - `full_bin` (e.g. `./bin/blog -addr=:8080`) doesn't pass `-db-dsn` explicitly and doesn't go through the Makefile's own `${BLOG_DB_DSN}` variable interpolation (that's Make-internal, not an OS environment export) — so `.envrc` must already be sourced in the shell before `make dev/blog`, same requirement as running `go run ./cmd/blog` directly without the `-db-dsn` flag.
 - `[proxy]` is enabled (browser auto-refreshes after each rebuild) on a separate port per mode (`8091`/`4091`) so both can run simultaneously without colliding.
+
+## Release pipeline
+
+Background research and the primary-source citations behind the decisions below live in `docs/research/release-pipeline.md` (release-please/GoReleaser/Docker tagging) and `docs/research/neon-branching.md` (Neon branch mechanics and CI patterns) — this section records the decisions actually taken, not the research itself. `docs/neon-branches.md` documents the Neon branch topology itself in more detail.
+
+**Scope boundary.** This repo's responsibility ends at a correctly-tagged, correctly-versioned image landing in GHCR (or, for the dev channel, a floating tag) and a database branch existing with its DSN recorded somewhere consumable. The Kubernetes manifests, GitOps policies (Flux `ImagePolicy` etc.), and Renovate config that actually deploy those images live in the separate homelab infrastructure repo, not here.
+
+### Three-branch model
+
+| Branch | Role | Merge strategy in | Why |
+|---|---|---|---|
+| `feature/*` | One per issue/PRD chain, branched off `development` | Squash-merged into `development` | A feature branch typically accumulates messy in-progress commits (fixups, review-response commits); squashing collapses that into one clean commit before it ever reaches a branch release-please watches. |
+| `development` | Persistent integration branch; every push triggers the dev-image workflow | Regular merge commit into `main` (never squashed) | release-please derives one changelog entry per conventional-commit-formatted commit on the branch it watches. Read directly from release-please's own source (`src/commit.ts`'s `splitMessages()`), GitHub's default squash-merge commit body (`* ` bullets, single newlines) does not get split back into multiple entries by that parser, so squashing `development → main` would collapse an entire batch of features into a single undifferentiated changelog line. A regular merge commit preserves each feature's own commit, so `main` gets one changelog entry per feature — the reason this level's strategy is deliberately the opposite of the level below it. |
+| `main` | release-please's target; a merge here is a real release event | — | Tags and GitHub Releases are only ever cut from here. |
+
+### release-please configuration
+
+`release-please-config.json` uses a single package at the repo root (`"."`), not `linked-versions` or a multi-package layout — there is exactly one version governing both `cmd/blog` and `cmd/migrate` binaries, and per the manifest engine's own design a single-entry manifest is the recommended shape for a single-artifact repo, not a special/reduced mode. `release-type: "go"` (no `version-file`, since nothing in this repo needs a version constant rewritten — version comes from VCS metadata at build time, see Building binaries above). `include-component-in-tag: false` + `include-v-in-tag: true` produce a plain `vX.Y.Z` tag rather than a component-prefixed one, since there's only one component. `initial-version: "0.1.0"`, since the repo had zero prior tags when this was configured.
+
+**The default `GITHUB_TOKEN` is not sufficient for the release-please job itself** — discovered empirically, not predicted by the design: GitHub's own recursive-workflow guard means a `GITHUB_TOKEN`-authored push/PR does not trigger further workflow runs, so `RELEASE_PLEASE_TOKEN` (a PAT) is required for `release.yml`'s `release-please` job to create the Release PR and, later, the tag push that other workflows might key off. The `build-and-push` job triggered by `release_created` in that same workflow, by contrast, only reads `secrets.GITHUB_TOKEN` for GHCR auth (`packages: write` is enough) — the PAT requirement is specific to release-please's own PR/tag-creation step, not to publishing images.
+
+### Why GoReleaser is not used
+
+GoReleaser was deliberately dropped from the design, not omitted by oversight. Two independent reasons:
+
+- **Version injection mechanism mismatch.** `internal/vcs.Version()` (see Building binaries above) reads Go's own VCS build-info stamping via `debug.ReadBuildInfo()` — it needs `.git` present in the build context and real commit history, and is populated automatically by `go build` alone. GoReleaser's convention is the opposite: inject the version via `-ldflags` into a package-level variable. Adopting GoReleaser would mean maintaining two competing version mechanisms or ripping out the one already in place for no benefit.
+- **No floating dev-channel mechanism in OSS GoReleaser.** `--snapshot` deliberately never publishes anything (`--skip=announce,publish,validate` is implied). `--nightly` — the actual rolling/floating-tag feature — is GoReleaser Pro-only. Since a free/OSS pipeline for the dev-image channel would need a separate `docker/build-push-action`-based step regardless, routing the tagged-release channel through GoReleaser and the dev channel around it would mean two different build mechanisms for the same Dockerfiles — so both channels use the same plain `docker/build-push-action` mechanism instead, and GoReleaser is not used anywhere in the pipeline.
+
+### Docker images
+
+Both binaries are built as separate multi-stage images (`Dockerfile.blog`, `Dockerfile.migrate`): a `golang:1.26` build stage running natively on the build platform (`--platform=$BUILDPLATFORM`) cross-compiling via `GOOS`/`GOARCH` (no QEMU emulation), producing `linux/amd64` + `linux/arm64` images from one build; a `gcr.io/distroless/static-debian12` final stage (no shell, minimal attack surface, includes the CA cert bundle Neon's `sslmode=require` needs). `.dockerignore` excludes `docs/`, `bin/`, `.devcontainer/` — but never `.git`, since the build stage's VCS version stamping depends on it being present. Both images publish to GHCR (`ghcr.io/jonathanschwarzhaupt/home-blog`, `ghcr.io/jonathanschwarzhaupt/home-blog-migrate`) via the default `GITHUB_TOKEN` (`packages: write`), no PAT needed for this specific purpose.
+
+Two channels, two tag schemes:
+
+- **Tagged release** (`release.yml`, triggered on release-please cutting a real tag on `main`): `vX.Y.Z` and a floating `:latest`.
+- **Dev channel** (`dev-image.yml`, triggered on every push to `development`): computes the next version via `release-please release-pr --dry-run` against `development`'s HEAD — read-only against GitHub's API, creates no PR or tag — and tags the image `X.Y.Z-dev.<run_number>.<short-sha>` (a valid SemVer 2.0 prerelease identifier, and a valid Docker tag, since Docker tags can't contain `+`) plus a floating `:dev`. This never touches `main`'s tag list or release-please's own bookkeeping there.
+
+### Neon branch topology
+
+Three distinct branches of the same Neon project, not three different databases: `production` (the one real database, fed only on a tagged release — see ADR-0002/ADR-0003 for which deployment that is), a persistent `development` branch isolated from it (feeding the always-on admin-preview environment the homelab repo runs), and ephemeral `preview/pr-<number>` branches (created by `migration-check.yml` per open PR touching migration-relevant paths, deleted on success, left alive on failure for debugging). `docs/neon-branches.md` is the source of truth for this topology and where each branch's DSN lives — this section only records the two facts specific to the CI pipeline itself:
+
+- All Neon DSNs used in CI are direct/unpooled connections, never Neon's `-pooler` endpoint — PgBouncer's transaction-mode pooling doesn't preserve session state across statements, which breaks goose's session-level advisory lock (a different, narrower reason than `internal/models`' long-running-pool rationale above — see Database layer).
+- GitHub Environments (not plain repo secrets, which have no per-workflow scoping) hold the `NEON_API_KEY`/`NEON_PROJECT_ID` used to provision the ephemeral branches.
