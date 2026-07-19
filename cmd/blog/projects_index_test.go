@@ -119,7 +119,7 @@ func TestProjectsIndex_PassesFiltersThroughToTheQuery(t *testing.T) {
 	defer rs.Body.Close()
 
 	assert.Equal(t, rs.StatusCode, http.StatusOK)
-	assert.Equal(t, gotParams.SortOldest, true)
+	assert.Equal(t, gotParams.SortMode, "oldest")
 	assert.Equal(t, gotParams.FromDate.Valid, true)
 	assert.Equal(t, gotParams.FromDate.Time.Format("2006-01-02"), "2020-01-01")
 	assert.Equal(t, gotParams.ToDate.Valid, true)
@@ -150,7 +150,7 @@ func TestProjectsIndex_InvalidQueryParamsFallBackToDefaults(t *testing.T) {
 	defer rs.Body.Close()
 
 	assert.Equal(t, rs.StatusCode, http.StatusOK)
-	assert.Equal(t, gotParams.SortOldest, false)
+	assert.Equal(t, gotParams.SortMode, "curated")
 	assert.Equal(t, gotParams.FromDate.Valid, false)
 	assert.Equal(t, gotParams.PageOffset, int32(0))
 }

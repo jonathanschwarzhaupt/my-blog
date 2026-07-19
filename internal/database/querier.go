@@ -13,12 +13,19 @@ type Querier interface {
 	ClearFeaturedProjects(ctx context.Context) error
 	DeletePost(ctx context.Context, id int64) (int64, error)
 	DeletePostProjects(ctx context.Context, postID int64) error
+	// post_projects rows for this project cascade-delete (ON DELETE CASCADE on
+	// post_projects.project_id, see 00003_create_projects_tables.sql) — the
+	// posts themselves are untouched, only unlinked.
+	DeleteProject(ctx context.Context, id int64) (int64, error)
 	GetPost(ctx context.Context, slug string) (Post, error)
 	GetProjectBySlug(ctx context.Context, slug string) (Project, error)
 	GetProjectsByIDs(ctx context.Context, ids []int64) ([]Project, error)
 	GetProjectsForPost(ctx context.Context, postID int64) ([]Project, error)
 	InsertPost(ctx context.Context, arg InsertPostParams) (Post, error)
 	InsertPostProject(ctx context.Context, arg InsertPostProjectParams) error
+	// order_key is never a caller-supplied value: it's computed here as one past
+	// the current maximum, so a new project always lands at the end of the
+	// curated order (see docs/adr/0006-project-ordering-via-editable-order-key.md).
 	InsertProject(ctx context.Context, arg InsertProjectParams) (Project, error)
 	ListDistinctTags(ctx context.Context) ([]string, error)
 	ListFeaturedPosts(ctx context.Context) ([]Post, error)
@@ -27,10 +34,15 @@ type Querier interface {
 	ListPostsByProjectSlug(ctx context.Context, slug string) ([]Post, error)
 	ListPostsFiltered(ctx context.Context, arg ListPostsFilteredParams) ([]ListPostsFilteredRow, error)
 	ListProjects(ctx context.Context) ([]Project, error)
+	// sort_mode is one of "curated" (order_key ASC, the default), "newest", or
+	// "oldest" (both by created_at) — exactly one CASE branch is non-NULL for any
+	// given sort_mode, so it alone determines the effective order; id ASC is the
+	// final tie-break in all three modes.
 	ListProjectsFiltered(ctx context.Context, arg ListProjectsFilteredParams) ([]ListProjectsFilteredRow, error)
 	SetFeaturedPost(ctx context.Context, arg SetFeaturedPostParams) error
 	SetFeaturedProject(ctx context.Context, arg SetFeaturedProjectParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
+	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
 }
 
 var _ Querier = (*Queries)(nil)

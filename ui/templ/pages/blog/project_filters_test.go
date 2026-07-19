@@ -11,7 +11,7 @@ func TestParseProjectFilters_Defaults(t *testing.T) {
 	f := ParseProjectFilters(url.Values{})
 
 	assert.Equal(t, f.Page, 1)
-	assert.Equal(t, f.Sort, "newest")
+	assert.Equal(t, f.Sort, "curated")
 	assert.Equal(t, f.From, "")
 	assert.Equal(t, f.To, "")
 }
@@ -23,7 +23,7 @@ func TestParseProjectFilters_InvalidValuesFallBackToDefaults(t *testing.T) {
 	})
 
 	assert.Equal(t, f.Page, 1)
-	assert.Equal(t, f.Sort, "newest")
+	assert.Equal(t, f.Sort, "curated")
 }
 
 func TestProjectSortLink_PreservesDateRangeButNotPage(t *testing.T) {
@@ -43,7 +43,7 @@ func TestProjectPageLink_PreservesSortAndDateRange(t *testing.T) {
 }
 
 func TestProjectPageLink_OmitsPageParamForPageOne(t *testing.T) {
-	f := ProjectFilters{Page: 2, Sort: "newest"}
+	f := ProjectFilters{Page: 2, Sort: "curated"}
 
 	got := f.PageLink(1)
 
@@ -59,8 +59,16 @@ func TestProjectClearDateRangeLink_DropsDatesPreservesSort(t *testing.T) {
 }
 
 func TestProjectBareDefaults_ProduceCleanURL(t *testing.T) {
-	f := ProjectFilters{Page: 1, Sort: "newest"}
+	f := ProjectFilters{Page: 1, Sort: "curated"}
 
 	assert.Equal(t, f.PageLink(1), "/projects")
 	assert.Equal(t, f.ClearDateRangeLink(), "/projects")
+}
+
+func TestProjectSortLink_CuratedOmitsSortParam(t *testing.T) {
+	f := ProjectFilters{Page: 1, Sort: "oldest"}
+
+	got := f.SortLink("curated")
+
+	assert.Equal(t, got, "/projects")
 }

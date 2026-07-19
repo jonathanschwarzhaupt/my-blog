@@ -49,7 +49,7 @@ func TestListProjectsFiltered_NoFiltersReturnsAllOrderedNewestFirst(t *testing.T
 	ids := seedProjects(t, pool, []time.Time{base, base.AddDate(0, 0, 1), base.AddDate(0, 0, 2)})
 
 	rows, err := q.ListProjectsFiltered(t.Context(), database.ListProjectsFilteredParams{
-		SortOldest: false,
+		SortMode:   "newest",
 		PageLimit:  100,
 		PageOffset: 0,
 	})
@@ -78,7 +78,7 @@ func TestListProjectsFiltered_SortOldestReversesOrder(t *testing.T) {
 	ids := seedProjects(t, pool, []time.Time{base, base.AddDate(0, 0, 1), base.AddDate(0, 0, 2)})
 
 	rows, err := q.ListProjectsFiltered(t.Context(), database.ListProjectsFilteredParams{
-		SortOldest: true,
+		SortMode:   "oldest",
 		PageLimit:  100,
 		PageOffset: 0,
 	})
@@ -112,7 +112,7 @@ func TestListProjectsFiltered_DateRangeNarrowsResults(t *testing.T) {
 	rows, err := q.ListProjectsFiltered(t.Context(), database.ListProjectsFilteredParams{
 		FromDate:   pgtype.Timestamptz{Time: from, Valid: true},
 		ToDate:     pgtype.Timestamptz{Time: to, Valid: true},
-		SortOldest: true,
+		SortMode:   "oldest",
 		PageLimit:  100,
 		PageOffset: 0,
 	})
@@ -148,7 +148,7 @@ func TestListProjectsFiltered_PaginationBoundaries(t *testing.T) {
 	page1, err := q.ListProjectsFiltered(t.Context(), database.ListProjectsFilteredParams{
 		FromDate:   pgtype.Timestamptz{Time: from, Valid: true},
 		ToDate:     pgtype.Timestamptz{Time: to, Valid: true},
-		SortOldest: true,
+		SortMode:   "oldest",
 		PageLimit:  2,
 		PageOffset: 0,
 	})
@@ -163,7 +163,7 @@ func TestListProjectsFiltered_PaginationBoundaries(t *testing.T) {
 	lastPage, err := q.ListProjectsFiltered(t.Context(), database.ListProjectsFilteredParams{
 		FromDate:   pgtype.Timestamptz{Time: from, Valid: true},
 		ToDate:     pgtype.Timestamptz{Time: to, Valid: true},
-		SortOldest: true,
+		SortMode:   "oldest",
 		PageLimit:  2,
 		PageOffset: 4,
 	})
@@ -176,7 +176,7 @@ func TestListProjectsFiltered_PaginationBoundaries(t *testing.T) {
 	pastEnd, err := q.ListProjectsFiltered(t.Context(), database.ListProjectsFilteredParams{
 		FromDate:   pgtype.Timestamptz{Time: from, Valid: true},
 		ToDate:     pgtype.Timestamptz{Time: to, Valid: true},
-		SortOldest: true,
+		SortMode:   "oldest",
 		PageLimit:  2,
 		PageOffset: 6,
 	})
