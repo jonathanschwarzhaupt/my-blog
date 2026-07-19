@@ -32,6 +32,7 @@ type Project struct {
 	Description  string
 	FeaturedRank pgtype.Int4
 	CreatedAt    pgtype.Timestamptz
+	OrderKey     float64
 }
 
 type Session struct {

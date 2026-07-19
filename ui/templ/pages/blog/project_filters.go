@@ -13,7 +13,7 @@ const ProjectsPerPage = 7
 // is a read-only browsing page with no form field to report against.
 type ProjectFilters struct {
 	Page int
-	Sort string // "newest" (default) or "oldest"
+	Sort string // "curated" (default, by order_key), "newest", or "oldest" (both by created_at)
 	From string // "YYYY-MM-DD" or ""
 	To   string // "YYYY-MM-DD" or ""
 }
@@ -25,8 +25,8 @@ func ParseProjectFilters(query url.Values) ProjectFilters {
 	}
 
 	sort := query.Get("sort")
-	if sort != "oldest" {
-		sort = "newest"
+	if sort != "newest" && sort != "oldest" {
+		sort = "curated"
 	}
 
 	return ProjectFilters{
@@ -39,8 +39,8 @@ func ParseProjectFilters(query url.Values) ProjectFilters {
 
 func (f ProjectFilters) baseQuery() url.Values {
 	v := url.Values{}
-	if f.Sort == "oldest" {
-		v.Set("sort", "oldest")
+	if f.Sort != "curated" {
+		v.Set("sort", f.Sort)
 	}
 	if f.From != "" {
 		v.Set("from", f.From)
@@ -64,8 +64,8 @@ func projectLinkFrom(v url.Values) string {
 // page context.
 func (f ProjectFilters) SortLink(sort string) string {
 	v := url.Values{}
-	if sort == "oldest" {
-		v.Set("sort", "oldest")
+	if sort != "curated" {
+		v.Set("sort", sort)
 	}
 	if f.From != "" {
 		v.Set("from", f.From)
@@ -88,8 +88,8 @@ func (f ProjectFilters) PageLink(page int) string {
 // ClearDateRangeLink preserves sort but drops from/to and resets to page 1.
 func (f ProjectFilters) ClearDateRangeLink() string {
 	v := url.Values{}
-	if f.Sort == "oldest" {
-		v.Set("sort", "oldest")
+	if f.Sort != "curated" {
+		v.Set("sort", f.Sort)
 	}
 	return projectLinkFrom(v)
 }

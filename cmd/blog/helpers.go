@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -47,4 +49,23 @@ func parseOptionalDate(s string) (pgtype.Timestamptz, bool) {
 		return pgtype.Timestamptz{}, false
 	}
 	return pgtype.Timestamptz{Time: t, Valid: true}, true
+}
+
+// parseOrderKey parses a project's order_key form value. Any finite number
+// is valid, including decimals and negatives — that's the point of a
+// fractional-indexing-style key (see docs/adr/0006), it's what lets a
+// project be repositioned without renumbering its neighbors.
+func parseOrderKey(s string) (float64, bool) {
+	v, err := strconv.ParseFloat(strings.TrimSpace(s), 64)
+	if err != nil {
+		return 0, false
+	}
+	return v, true
+}
+
+// formatOrderKey renders a project's order_key for a form's initial value —
+// minimal digits, no trailing zeros or scientific notation, so re-submitting
+// an unchanged value round-trips exactly.
+func formatOrderKey(v float64) string {
+	return strconv.FormatFloat(v, 'f', -1, 64)
 }

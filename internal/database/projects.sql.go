@@ -29,8 +29,23 @@ func (q *Queries) DeletePostProjects(ctx context.Context, postID int64) error {
 	return err
 }
 
+const deleteProject = `-- name: DeleteProject :execrows
+DELETE FROM projects WHERE id = $1
+`
+
+// post_projects rows for this project cascade-delete (ON DELETE CASCADE on
+// post_projects.project_id, see 00003_create_projects_tables.sql) — the
+// posts themselves are untouched, only unlinked.
+func (q *Queries) DeleteProject(ctx context.Context, id int64) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteProject, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getProjectBySlug = `-- name: GetProjectBySlug :one
-SELECT id, name, slug, description, featured_rank, created_at FROM projects WHERE slug = $1
+SELECT id, name, slug, description, featured_rank, created_at, order_key FROM projects WHERE slug = $1
 `
 
 func (q *Queries) GetProjectBySlug(ctx context.Context, slug string) (Project, error) {
@@ -43,12 +58,13 @@ func (q *Queries) GetProjectBySlug(ctx context.Context, slug string) (Project, e
 		&i.Description,
 		&i.FeaturedRank,
 		&i.CreatedAt,
+		&i.OrderKey,
 	)
 	return i, err
 }
 
 const getProjectsByIDs = `-- name: GetProjectsByIDs :many
-SELECT id, name, slug, description, featured_rank, created_at FROM projects WHERE id = ANY($1::bigint[])
+SELECT id, name, slug, description, featured_rank, created_at, order_key FROM projects WHERE id = ANY($1::bigint[])
 `
 
 func (q *Queries) GetProjectsByIDs(ctx context.Context, ids []int64) ([]Project, error) {
@@ -67,6 +83,7 @@ func (q *Queries) GetProjectsByIDs(ctx context.Context, ids []int64) ([]Project,
 			&i.Description,
 			&i.FeaturedRank,
 			&i.CreatedAt,
+			&i.OrderKey,
 		); err != nil {
 			return nil, err
 		}
@@ -79,7 +96,7 @@ func (q *Queries) GetProjectsByIDs(ctx context.Context, ids []int64) ([]Project,
 }
 
 const getProjectsForPost = `-- name: GetProjectsForPost :many
-SELECT projects.id, projects.name, projects.slug, projects.description, projects.featured_rank, projects.created_at FROM projects
+SELECT projects.id, projects.name, projects.slug, projects.description, projects.featured_rank, projects.created_at, projects.order_key FROM projects
 JOIN post_projects ON post_projects.project_id = projects.id
 WHERE post_projects.post_id = $1
 ORDER BY projects.name ASC
@@ -101,6 +118,7 @@ func (q *Queries) GetProjectsForPost(ctx context.Context, postID int64) ([]Proje
 			&i.Description,
 			&i.FeaturedRank,
 			&i.CreatedAt,
+			&i.OrderKey,
 		); err != nil {
 			return nil, err
 		}
@@ -127,9 +145,13 @@ func (q *Queries) InsertPostProject(ctx context.Context, arg InsertPostProjectPa
 }
 
 const insertProject = `-- name: InsertProject :one
-INSERT INTO projects (name, slug, description, created_at)
-VALUES ($1, $2, $3, COALESCE($4::timestamptz, now()))
-RETURNING id, name, slug, description, featured_rank, created_at
+INSERT INTO projects (name, slug, description, created_at, order_key)
+VALUES (
+  $1, $2, $3,
+  COALESCE($4::timestamptz, now()),
+  COALESCE((SELECT MAX(order_key) FROM projects), 0) + 1
+)
+RETURNING id, name, slug, description, featured_rank, created_at, order_key
 `
 
 type InsertProjectParams struct {
@@ -139,6 +161,9 @@ type InsertProjectParams struct {
 	CreatedAt   pgtype.Timestamptz
 }
 
+// order_key is never a caller-supplied value: it's computed here as one past
+// the current maximum, so a new project always lands at the end of the
+// curated order (see docs/adr/0006-project-ordering-via-editable-order-key.md).
 func (q *Queries) InsertProject(ctx context.Context, arg InsertProjectParams) (Project, error) {
 	row := q.db.QueryRow(ctx, insertProject,
 		arg.Name,
@@ -154,12 +179,13 @@ func (q *Queries) InsertProject(ctx context.Context, arg InsertProjectParams) (P
 		&i.Description,
 		&i.FeaturedRank,
 		&i.CreatedAt,
+		&i.OrderKey,
 	)
 	return i, err
 }
 
 const listFeaturedProjects = `-- name: ListFeaturedProjects :many
-SELECT id, name, slug, description, featured_rank, created_at FROM projects WHERE featured_rank IS NOT NULL ORDER BY featured_rank ASC
+SELECT id, name, slug, description, featured_rank, created_at, order_key FROM projects WHERE featured_rank IS NOT NULL ORDER BY featured_rank ASC
 `
 
 func (q *Queries) ListFeaturedProjects(ctx context.Context) ([]Project, error) {
@@ -178,6 +204,7 @@ func (q *Queries) ListFeaturedProjects(ctx context.Context) ([]Project, error) {
 			&i.Description,
 			&i.FeaturedRank,
 			&i.CreatedAt,
+			&i.OrderKey,
 		); err != nil {
 			return nil, err
 		}
@@ -228,7 +255,7 @@ func (q *Queries) ListPostsByProjectSlug(ctx context.Context, slug string) ([]Po
 }
 
 const listProjects = `-- name: ListProjects :many
-SELECT id, name, slug, description, featured_rank, created_at FROM projects ORDER BY name ASC
+SELECT id, name, slug, description, featured_rank, created_at, order_key FROM projects ORDER BY name ASC
 `
 
 func (q *Queries) ListProjects(ctx context.Context) ([]Project, error) {
@@ -247,6 +274,7 @@ func (q *Queries) ListProjects(ctx context.Context) ([]Project, error) {
 			&i.Description,
 			&i.FeaturedRank,
 			&i.CreatedAt,
+			&i.OrderKey,
 		); err != nil {
 			return nil, err
 		}
@@ -259,12 +287,13 @@ func (q *Queries) ListProjects(ctx context.Context) ([]Project, error) {
 }
 
 const listProjectsFiltered = `-- name: ListProjectsFiltered :many
-SELECT id, name, slug, description, featured_rank, created_at, count(*) OVER() AS total_count FROM projects
+SELECT id, name, slug, description, featured_rank, created_at, order_key, count(*) OVER() AS total_count FROM projects
 WHERE ($1::timestamptz IS NULL OR created_at >= $1)
   AND ($2::timestamptz IS NULL OR created_at <= $2)
 ORDER BY
-  CASE WHEN $3::bool THEN created_at END ASC,
-  CASE WHEN NOT $3::bool THEN created_at END DESC,
+  CASE WHEN $3::text = 'curated' THEN order_key END ASC,
+  CASE WHEN $3::text = 'oldest' THEN created_at END ASC,
+  CASE WHEN $3::text = 'newest' THEN created_at END DESC,
   id ASC
 LIMIT $5 OFFSET $4
 `
@@ -272,7 +301,7 @@ LIMIT $5 OFFSET $4
 type ListProjectsFilteredParams struct {
 	FromDate   pgtype.Timestamptz
 	ToDate     pgtype.Timestamptz
-	SortOldest bool
+	SortMode   string
 	PageOffset int32
 	PageLimit  int32
 }
@@ -284,14 +313,19 @@ type ListProjectsFilteredRow struct {
 	Description  string
 	FeaturedRank pgtype.Int4
 	CreatedAt    pgtype.Timestamptz
+	OrderKey     float64
 	TotalCount   int64
 }
 
+// sort_mode is one of "curated" (order_key ASC, the default), "newest", or
+// "oldest" (both by created_at) — exactly one CASE branch is non-NULL for any
+// given sort_mode, so it alone determines the effective order; id ASC is the
+// final tie-break in all three modes.
 func (q *Queries) ListProjectsFiltered(ctx context.Context, arg ListProjectsFilteredParams) ([]ListProjectsFilteredRow, error) {
 	rows, err := q.db.Query(ctx, listProjectsFiltered,
 		arg.FromDate,
 		arg.ToDate,
-		arg.SortOldest,
+		arg.SortMode,
 		arg.PageOffset,
 		arg.PageLimit,
 	)
@@ -309,6 +343,7 @@ func (q *Queries) ListProjectsFiltered(ctx context.Context, arg ListProjectsFilt
 			&i.Description,
 			&i.FeaturedRank,
 			&i.CreatedAt,
+			&i.OrderKey,
 			&i.TotalCount,
 		); err != nil {
 			return nil, err
@@ -333,4 +368,38 @@ type SetFeaturedProjectParams struct {
 func (q *Queries) SetFeaturedProject(ctx context.Context, arg SetFeaturedProjectParams) error {
 	_, err := q.db.Exec(ctx, setFeaturedProject, arg.FeaturedRank, arg.ID)
 	return err
+}
+
+const updateProject = `-- name: UpdateProject :one
+UPDATE projects
+SET description = $1, order_key = $2, created_at = $3
+WHERE id = $4
+RETURNING id, name, slug, description, featured_rank, created_at, order_key
+`
+
+type UpdateProjectParams struct {
+	Description string
+	OrderKey    float64
+	CreatedAt   pgtype.Timestamptz
+	ID          int64
+}
+
+func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error) {
+	row := q.db.QueryRow(ctx, updateProject,
+		arg.Description,
+		arg.OrderKey,
+		arg.CreatedAt,
+		arg.ID,
+	)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Slug,
+		&i.Description,
+		&i.FeaturedRank,
+		&i.CreatedAt,
+		&i.OrderKey,
+	)
+	return i, err
 }

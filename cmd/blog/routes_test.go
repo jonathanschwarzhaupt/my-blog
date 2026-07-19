@@ -225,4 +225,18 @@ func TestRoutes_AdminRoutesNotFoundWhenDisabled(t *testing.T) {
 	}
 	defer rs3.Body.Close()
 	assert.Equal(t, rs3.StatusCode, http.StatusNotFound)
+
+	rs4, err := http.Get(ts.URL + "/projects/homelab/edit")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs4.Body.Close()
+	assert.Equal(t, rs4.StatusCode, http.StatusNotFound)
+
+	rs5, err := http.Post(ts.URL+"/projects/homelab/delete", "application/x-www-form-urlencoded", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs5.Body.Close()
+	assert.Equal(t, rs5.StatusCode, http.StatusNotFound)
 }

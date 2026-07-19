@@ -25,7 +25,7 @@ func (app *application) projectsIndex(w http.ResponseWriter, r *http.Request) {
 	rows, err := app.db.ListProjectsFiltered(ctx, database.ListProjectsFilteredParams{
 		FromDate:   fromDate,
 		ToDate:     toDate,
-		SortOldest: filters.Sort == "oldest",
+		SortMode:   filters.Sort,
 		PageLimit:  blog.ProjectsPerPage,
 		PageOffset: int32((filters.Page - 1) * blog.ProjectsPerPage),
 	})
@@ -44,6 +44,7 @@ func (app *application) projectsIndex(w http.ResponseWriter, r *http.Request) {
 			Slug:        row.Slug,
 			Description: row.Description,
 			CreatedAt:   row.CreatedAt,
+			OrderKey:    row.OrderKey,
 		})
 	}
 

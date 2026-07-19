@@ -12,6 +12,7 @@ type Project struct {
 	Slug        string
 	Description string
 	CreatedAt   time.Time
+	OrderKey    float64
 }
 
 func ProjectFromDatabase(p database.Project) Project {
@@ -21,5 +22,6 @@ func ProjectFromDatabase(p database.Project) Project {
 		Slug:        p.Slug,
 		Description: p.Description,
 		CreatedAt:   p.CreatedAt.Time,
+		OrderKey:    p.OrderKey,
 	}
 }
