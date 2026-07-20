@@ -40,6 +40,12 @@ func (app *application) routes() http.Handler {
 		mux.Handle("POST /admin/featured", dynamic.ThenFunc(app.manageFeaturedPost))
 		mux.Handle("GET /admin/order", dynamic.ThenFunc(app.manageOrder))
 		mux.Handle("POST /admin/order", dynamic.ThenFunc(app.manageOrderPost))
+		mux.Handle("GET /admin/about/edit", dynamic.ThenFunc(app.aboutEdit))
+		mux.Handle("POST /admin/about/edit", dynamic.ThenFunc(app.aboutUpdate))
+		mux.Handle("GET /admin/about/history", dynamic.ThenFunc(app.aboutHistory))
+		mux.Handle("POST /admin/about/history/{id}/restore", dynamic.ThenFunc(app.aboutRestore))
+		mux.Handle("GET /admin/skills", dynamic.ThenFunc(app.manageSkills))
+		mux.Handle("POST /admin/skills", dynamic.ThenFunc(app.manageSkillsPost))
 		mux.Handle("GET /admin/stats", dynamic.ThenFunc(app.stats))
 	}
 
