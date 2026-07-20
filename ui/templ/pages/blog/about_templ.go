@@ -13,7 +13,7 @@ import (
 	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/layout"
 )
 
-func About() templ.Component {
+func About(bodyHTML string, skillGroups []SkillGroup) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -46,27 +46,35 @@ func About() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article><h1 class=\"text-2xl font-semibold tracking-tight\">About Me</h1><div class=\"mt-6 flex flex-col gap-6 sm:flex-row sm:items-start\"><img src=\"/static/images/profile.jpg\" alt=\"Jonathan Schwarzhaupt\" width=\"160\" height=\"160\" class=\"h-40 w-40 shrink-0 rounded-full border border-border object-cover\"><p class=\"text-muted-foreground\">Hi there! 👋 I'm Jonathan, a DevOps Engineer in healthtech, based in Munich. I build reliable infrastructure and software for a living — and then, for reasons I haven't fully examined, come home and build more of it for fun.</p></div><h2 class=\"mt-8 text-lg font-semibold tracking-tight\">My Journey</h2><p class=\"mt-3 text-muted-foreground\">I started out in business, completing both my bachelor's and master's degrees in business studies. During my MSc in Business Analytics, I found out I liked the technical side a lot more than I expected, and spent the following years as a Data Engineer, architecting cloud data platforms on Microsoft Azure and AWS.</p><p class=\"mt-3 text-muted-foreground\">Over the last year and a half, I deliberately deepened my infrastructure skills — Kubernetes, GitOps, the foundational layer everything else depends on — because I wanted to work closer to where reliability actually gets built. That effort became a DevOps Engineer role at Avelios Medical, where I work on the Kubernetes and GitOps infrastructure behind a hospital information system (KIS) — real, mission-critical software, on a team I very much had to earn my way onto. The business background hasn't gone away; it's still how I think. I'm just building the layer underneath everything else now, instead of the layer on top of it.</p><h2 class=\"mt-8 text-lg font-semibold tracking-tight\">What I Do</h2><p class=\"mt-3 text-muted-foreground\">At Avelios Medical, I work on the foundational infrastructure that lets teams ship reliably and our software function the way hospital software has to — Kubernetes, GitOps (ArgoCD, specifically), CI/CD, observability. “Mostly working” isn't a real option in healthtech, which is exactly the kind of pressure that makes the work interesting. My data engineering background still shapes how I approach it: pipelines and platforms live and die by the same things — clear boundaries, good automation, and infrastructure that evolves without someone babysitting it.</p><p class=\"mt-3 text-muted-foreground\">I bring the same cloud-native instinct from my Azure/AWS data platform days to infrastructure now — picking the right tool for the problem, managed or self-hosted, rather than defaulting to one camp out of habit.</p><h2 class=\"mt-8 text-lg font-semibold tracking-tight\">Technical Skills</h2><div class=\"mt-3 flex flex-col gap-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article><h1 class=\"text-2xl font-semibold tracking-tight\">About Me</h1><img src=\"/static/images/profile.jpg\" alt=\"Jonathan Schwarzhaupt\" width=\"160\" height=\"160\" class=\"mt-6 h-40 w-40 shrink-0 rounded-full border border-border object-cover\"><!--\n\t\t\t\tbodyHTML is the latest about_revision's body, already rendered from\n\t\t\t\tmarkdown (internal/markdown, called by the handler) — safe to embed\n\t\t\t\tas-is via templ.Raw, same reasoning as PostView's body (goldmark's\n\t\t\t\tdefault non-unsafe rendering already drops any raw HTML source).\n\t\t\t--><div class=\"prose prose-neutral mt-6 max-w-none\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = skillGroup("Infrastructure & Platform", []string{"Kubernetes", "GitOps (ArgoCD, Flux)", "Docker", "CI/CD"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = templ.Raw(bodyHTML).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = skillGroup("Cloud", []string{"Microsoft Azure (Certified Data Engineer & Administrator)", "AWS"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = skillGroup("Data Tools", []string{"Airflow", "DuckDB", "dlt", "dbt"}).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
+			if len(skillGroups) > 0 {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<h2 class=\"mt-8 text-lg font-semibold tracking-tight\">Technical Skills</h2><div class=\"mt-3 flex flex-col gap-3\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				for _, group := range skillGroups {
+					templ_7745c5c3_Err = skillGroup(group).Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			templ_7745c5c3_Err = skillGroup("Languages", []string{"Python", "SQL", "Go", "Bash"}).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><h2 class=\"mt-8 text-lg font-semibold tracking-tight\">Beyond Engineering</h2><p class=\"mt-3 text-muted-foreground\">Off the clock, you'll find me on the field hockey pitch — I've played competitively for 15+ years — or out exploring Munich's golf courses and its neighborhoods.</p><p class=\"mt-3 text-muted-foreground\">The infrastructure habit doesn't really turn off, though. I self-host an Apache Arrow Flight SQL data warehouse in my homelab, with pipelines pulling in my own bank transactions — because apparently a budgeting app was never going to be enough for me. Curious how the Flight SQL server is set up? I <a href=\"/posts/gizmosql-in-kubernetes\" class=\"text-primary hover:underline\">wrote it up</a>. And yes, this blog itself runs on Kubernetes — GitOps habits die hard, even for a personal site with a readership of, generously, a handful.</p><p class=\"mt-3 text-muted-foreground\">It's also my sandbox for something else I've been deliberately leaning into: agentic AI coding — letting AI operate with real autonomy at the layers I'm comfortable handing over, under constraints and supervision I set myself. I'm planning a post series on what that's actually looked like in practice, mistakes included — for now, consider this whole site the first data point.</p><p class=\"mt-8 text-muted-foreground\">If you're in the middle of a similar business-to-tech jump, or just want to talk shop about Kubernetes, GitOps, or data platforms, reach out — I remember exactly what that jump looks like from the other side, and I'm always happy to help. Otherwise, have a look at what I've <a href=\"/posts\" class=\"text-primary hover:underline\">written</a> or <a href=\"/projects\" class=\"text-primary hover:underline\">built</a>.</p></article>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</article>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -80,7 +88,7 @@ func About() templ.Component {
 	})
 }
 
-func skillGroup(label string, skills []string) templ.Component {
+func skillGroup(group SkillGroup) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -101,24 +109,24 @@ func skillGroup(label string, skills []string) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div><p class=\"text-sm font-medium\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div><p class=\"text-sm font-medium\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(label)
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(group.Category)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/blog/about.templ`, Line: 116, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/blog/about.templ`, Line: 40, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p><div class=\"mt-1.5 flex flex-wrap gap-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</p><div class=\"mt-1.5 flex flex-wrap gap-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		for _, skill := range skills {
+		for _, skill := range group.Skills {
 			templ_7745c5c3_Var5 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -132,9 +140,9 @@ func skillGroup(label string, skills []string) templ.Component {
 				}
 				ctx = templ.InitializeContext(ctx)
 				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(skill)
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(skill.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/blog/about.templ`, Line: 120, Col: 12}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/templ/pages/blog/about.templ`, Line: 44, Col: 17}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -147,7 +155,7 @@ func skillGroup(label string, skills []string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

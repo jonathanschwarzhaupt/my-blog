@@ -33,6 +33,13 @@ type MockQuerier struct {
 	DeleteProjectFunc          func(ctx context.Context, id int64) (int64, error)
 	ListProjectsByOrderFunc    func(ctx context.Context) ([]database.Project, error)
 	UpdateProjectOrderKeyFunc  func(ctx context.Context, arg database.UpdateProjectOrderKeyParams) error
+	InsertAboutRevisionFunc    func(ctx context.Context, body string) (database.AboutRevision, error)
+	GetLatestAboutRevisionFunc func(ctx context.Context) (database.AboutRevision, error)
+	ListAboutRevisionsFunc     func(ctx context.Context) ([]database.AboutRevision, error)
+	GetAboutRevisionFunc       func(ctx context.Context, id int64) (database.AboutRevision, error)
+	ListSkillsByOrderFunc      func(ctx context.Context) ([]database.Skill, error)
+	DeleteAllSkillsFunc        func(ctx context.Context) error
+	InsertSkillFunc            func(ctx context.Context, arg database.InsertSkillParams) (database.Skill, error)
 }
 
 func (m *MockQuerier) GetPost(ctx context.Context, slug string) (database.Post, error) {
@@ -137,6 +144,34 @@ func (m *MockQuerier) ListProjectsByOrder(ctx context.Context) ([]database.Proje
 
 func (m *MockQuerier) UpdateProjectOrderKey(ctx context.Context, arg database.UpdateProjectOrderKeyParams) error {
 	return m.UpdateProjectOrderKeyFunc(ctx, arg)
+}
+
+func (m *MockQuerier) InsertAboutRevision(ctx context.Context, body string) (database.AboutRevision, error) {
+	return m.InsertAboutRevisionFunc(ctx, body)
+}
+
+func (m *MockQuerier) GetLatestAboutRevision(ctx context.Context) (database.AboutRevision, error) {
+	return m.GetLatestAboutRevisionFunc(ctx)
+}
+
+func (m *MockQuerier) ListAboutRevisions(ctx context.Context) ([]database.AboutRevision, error) {
+	return m.ListAboutRevisionsFunc(ctx)
+}
+
+func (m *MockQuerier) GetAboutRevision(ctx context.Context, id int64) (database.AboutRevision, error) {
+	return m.GetAboutRevisionFunc(ctx, id)
+}
+
+func (m *MockQuerier) ListSkillsByOrder(ctx context.Context) ([]database.Skill, error) {
+	return m.ListSkillsByOrderFunc(ctx)
+}
+
+func (m *MockQuerier) DeleteAllSkills(ctx context.Context) error {
+	return m.DeleteAllSkillsFunc(ctx)
+}
+
+func (m *MockQuerier) InsertSkill(ctx context.Context, arg database.InsertSkillParams) (database.Skill, error) {
+	return m.InsertSkillFunc(ctx, arg)
 }
 
 var _ database.Querier = (*MockQuerier)(nil)

@@ -8,6 +8,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AboutRevision struct {
+	ID        int64
+	Body      string
+	CreatedAt pgtype.Timestamptz
+}
+
 type Post struct {
 	ID           int64
 	Title        string
@@ -39,4 +45,11 @@ type Session struct {
 	Token  string
 	Data   []byte
 	Expiry pgtype.Timestamptz
+}
+
+type Skill struct {
+	ID       int64
+	Category string
+	Name     string
+	OrderKey float64
 }

@@ -1,0 +1,56 @@
+package admin
+
+import (
+	"strconv"
+
+	"github.com/jonathanschwarzhaupt/home-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/button"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/layout"
+)
+
+templ AboutHistory(revisions []models.AboutRevision, flash string) {
+	@layout.Base("About History", flash) {
+		@layout.BackLink("/admin/about/edit")
+		<h1 class="text-2xl font-semibold tracking-tight">About History</h1>
+		<p class="mt-1 text-sm text-muted-foreground">Every saved version — restoring makes a copy of it the current version, it never rewrites history.</p>
+		<ul class="mt-6 flex list-none flex-col gap-3 p-0">
+			for i, revision := range revisions {
+				<li>
+					@revisionRow(revision, i == 0)
+				</li>
+			}
+		</ul>
+	}
+}
+
+templ revisionRow(revision models.AboutRevision, current bool) {
+	<div class="flex items-center justify-between gap-4 rounded-md border border-border px-4 py-3">
+		<div>
+			<p class="text-sm font-medium">
+				{ revision.CreatedAt.Format("2006-01-02 15:04") }
+				if current {
+					<span class="ml-2 text-xs text-muted-foreground">(current)</span>
+				}
+			</p>
+			<p class="mt-1 line-clamp-1 text-sm text-muted-foreground">{ preview(revision.Body) }</p>
+		</div>
+		if !current {
+			<form method="POST" action={ templ.SafeURL("/admin/about/history/" + strconv.FormatInt(revision.ID, 10) + "/restore") }>
+				@button.Button(button.Props{Type: button.TypeSubmit, Variant: button.VariantOutline, Size: button.SizeSm}) {
+					Restore
+				}
+			</form>
+		}
+	</div>
+}
+
+// preview trims a revision's body to a single-line-ish snippet for the
+// history list — this is a list of many rows, not the place to render full
+// markdown.
+func preview(body string) string {
+	const max = 120
+	if len(body) <= max {
+		return body
+	}
+	return body[:max] + "…"
+}
