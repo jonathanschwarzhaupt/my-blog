@@ -14,8 +14,10 @@ the same place `BLOG_DB_DSN` has always come from for local dev (`.envrc`).
 ## `development`
 
 A persistent branch created off `production`, isolated from it — schema changes and
-in-progress data from the always-on admin-preview environment (the one that auto-updates on
-every push to the `development` git branch, per #44/#52) never touch live public data.
+in-progress data from the always-on admin-preview environment (the one that auto-updates
+whenever a `development`->`main` pull request is opened or gets a new push while open, per
+#44/#52/#66 and `docs/adr/0008-tag-based-dev-image-versioning-on-pr-to-main.md` — once per
+completed feature, not once per issue merged into `development`) never touch live public data.
 `cmd/migrate` runs for real against this branch as part of that deployment's own rollout,
 same init-container pattern the production deployment already uses — not just a dry-run
 check.

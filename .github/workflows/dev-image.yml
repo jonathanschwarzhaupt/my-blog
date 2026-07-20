@@ -1,22 +1,35 @@
 name: Dev Image
 
+# Builds once per feature, not once per issue: a development->main PR is
+# opened once a batch of smaller per-issue merges into development amounts
+# to one complete feature (opened builds it), and any further push to
+# development while that PR stays open (e.g. a fix-up merge) rebuilds it
+# (synchronize) — see docs/adr/0008-tag-based-dev-image-versioning-on-pr-to-main.md.
 on:
-  push:
-    branches: [development]
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      # Needed to push the dev-image git tag created below (see ADR-0008 for
+      # why that's safe against release-please's own tag/version bookkeeping).
+      contents: write
       # release-please's dry-run reads associated-PR data via GraphQL to
       # compute the next version; it writes nothing, but that read still
       # needs this scope declared (an omitted scope defaults to none).
       pull-requests: read
       packages: write
     steps:
+      # A pull_request event's default ref/GITHUB_SHA is GitHub's ephemeral
+      # test-merge commit, not the PR's real head — checking that out (and
+      # tagging/building it) would tag a commit that never actually lands in
+      # development's real history. Pin to the actual head commit instead.
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 1
 
       - uses: actions/setup-node@v4
@@ -42,8 +55,21 @@ jobs:
             echo "Could not parse a version from: $title" >&2
             exit 1
           fi
-          short_sha="${GITHUB_SHA:0:7}"
+          short_sha="$(git rev-parse --short=7 HEAD)"
           echo "dev_tag=${version}-dev.${{ github.run_number }}.${short_sha}" >> "$GITHUB_OUTPUT"
+
+      # A real git tag (not just a Docker image tag) at the exact commit
+      # being built, so internal/vcs.Version() — which reads bi.Main.Version,
+      # itself computed from git tags — reports this string instead of a
+      # bare commit SHA. Created (and pushed) before the docker build steps:
+      # Dockerfile.blog's COPY . . copies this checkout's .git as-is, so the
+      # tag must exist locally before that copy happens for Go's VCS
+      # stamping to see it. Never cleaned up — see ADR-0008.
+      - name: Tag this build
+        run: |
+          tag="v${{ steps.version.outputs.dev_tag }}"
+          git tag "$tag"
+          git push origin "$tag"
 
       - uses: docker/setup-buildx-action@v3
 
