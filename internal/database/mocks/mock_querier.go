@@ -31,6 +31,8 @@ type MockQuerier struct {
 	SetFeaturedProjectFunc     func(ctx context.Context, arg database.SetFeaturedProjectParams) error
 	UpdateProjectFunc          func(ctx context.Context, arg database.UpdateProjectParams) (database.Project, error)
 	DeleteProjectFunc          func(ctx context.Context, id int64) (int64, error)
+	ListProjectsByOrderFunc    func(ctx context.Context) ([]database.Project, error)
+	UpdateProjectOrderKeyFunc  func(ctx context.Context, arg database.UpdateProjectOrderKeyParams) error
 }
 
 func (m *MockQuerier) GetPost(ctx context.Context, slug string) (database.Post, error) {
@@ -127,6 +129,14 @@ func (m *MockQuerier) UpdateProject(ctx context.Context, arg database.UpdateProj
 
 func (m *MockQuerier) DeleteProject(ctx context.Context, id int64) (int64, error) {
 	return m.DeleteProjectFunc(ctx, id)
+}
+
+func (m *MockQuerier) ListProjectsByOrder(ctx context.Context) ([]database.Project, error) {
+	return m.ListProjectsByOrderFunc(ctx)
+}
+
+func (m *MockQuerier) UpdateProjectOrderKey(ctx context.Context, arg database.UpdateProjectOrderKeyParams) error {
+	return m.UpdateProjectOrderKeyFunc(ctx, arg)
 }
 
 var _ database.Querier = (*MockQuerier)(nil)

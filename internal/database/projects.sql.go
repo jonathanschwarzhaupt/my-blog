@@ -286,6 +286,38 @@ func (q *Queries) ListProjects(ctx context.Context) ([]Project, error) {
 	return items, nil
 }
 
+const listProjectsByOrder = `-- name: ListProjectsByOrder :many
+SELECT id, name, slug, description, featured_rank, created_at, order_key FROM projects ORDER BY order_key ASC, id ASC
+`
+
+func (q *Queries) ListProjectsByOrder(ctx context.Context) ([]Project, error) {
+	rows, err := q.db.Query(ctx, listProjectsByOrder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Project
+	for rows.Next() {
+		var i Project
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Slug,
+			&i.Description,
+			&i.FeaturedRank,
+			&i.CreatedAt,
+			&i.OrderKey,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProjectsFiltered = `-- name: ListProjectsFiltered :many
 SELECT id, name, slug, description, featured_rank, created_at, order_key, count(*) OVER() AS total_count FROM projects
 WHERE ($1::timestamptz IS NULL OR created_at >= $1)
@@ -402,4 +434,18 @@ func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (P
 		&i.OrderKey,
 	)
 	return i, err
+}
+
+const updateProjectOrderKey = `-- name: UpdateProjectOrderKey :exec
+UPDATE projects SET order_key = $1 WHERE id = $2
+`
+
+type UpdateProjectOrderKeyParams struct {
+	OrderKey float64
+	ID       int64
+}
+
+func (q *Queries) UpdateProjectOrderKey(ctx context.Context, arg UpdateProjectOrderKeyParams) error {
+	_, err := q.db.Exec(ctx, updateProjectOrderKey, arg.OrderKey, arg.ID)
+	return err
 }

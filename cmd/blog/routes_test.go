@@ -239,4 +239,11 @@ func TestRoutes_AdminRoutesNotFoundWhenDisabled(t *testing.T) {
 	}
 	defer rs5.Body.Close()
 	assert.Equal(t, rs5.StatusCode, http.StatusNotFound)
+
+	rs6, err := http.Get(ts.URL + "/admin/order")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rs6.Body.Close()
+	assert.Equal(t, rs6.StatusCode, http.StatusNotFound)
 }

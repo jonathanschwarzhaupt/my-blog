@@ -1,0 +1,66 @@
+package admin
+
+import (
+	"strconv"
+
+	"github.com/jonathanschwarzhaupt/home-blog/internal/models"
+	"github.com/jonathanschwarzhaupt/home-blog/internal/validator"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/alert"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/button"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/input"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/layout"
+)
+
+// OrderKeyFieldName is the form field name for a given project's order_key
+// input, shared between this page and cmd/blog/manage_order.go — keyed by
+// project id rather than array position, so pairing a submitted value back
+// to its project can't be thrown off by row order.
+func OrderKeyFieldName(projectID int64) string {
+	return "order_key_" + strconv.FormatInt(projectID, 10)
+}
+
+templ ManageOrder(projects []models.Project, values map[int64]string, v validator.Validator, flash string) {
+	@layout.Base("Manage Order", flash) {
+		@layout.BackLink("/admin")
+		<h1 class="text-2xl font-semibold tracking-tight">Manage Order</h1>
+		<p class="mt-1 text-sm text-muted-foreground">Curated order shown on /projects by default — lower shows first.</p>
+		<form method="POST" action="/admin/order" class="mt-6 flex flex-col gap-4">
+			if len(v.NonFieldErrors) > 0 {
+				@alert.Alert(alert.Props{Variant: alert.VariantDestructive}) {
+					@alert.Description() {
+						for _, err := range v.NonFieldErrors {
+							<p>{ err }</p>
+						}
+					}
+				}
+			}
+			<div class="flex flex-col gap-3">
+				for _, project := range projects {
+					@orderRow(project, values[project.ID], v.FieldErrors[OrderKeyFieldName(project.ID)])
+				}
+			</div>
+			@button.Button(button.Props{Type: button.TypeSubmit}) {
+				Save
+			}
+		</form>
+	}
+}
+
+templ orderRow(project models.Project, value, fieldErr string) {
+	<div class="flex items-center gap-3">
+		<span class="flex-1 text-sm">{ project.Name }</span>
+		<div class="w-28 flex-none">
+			@input.Input(input.Props{
+				ID:         OrderKeyFieldName(project.ID),
+				Name:       OrderKeyFieldName(project.ID),
+				Type:       input.TypeNumber,
+				Value:      value,
+				HasError:   fieldErr != "",
+				Attributes: templ.Attributes{"step": "any"},
+			})
+			if fieldErr != "" {
+				<p class="text-sm text-destructive">{ fieldErr }</p>
+			}
+		</div>
+	</div>
+}

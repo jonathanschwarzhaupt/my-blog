@@ -34,6 +34,7 @@ type Querier interface {
 	ListPostsByProjectSlug(ctx context.Context, slug string) ([]Post, error)
 	ListPostsFiltered(ctx context.Context, arg ListPostsFilteredParams) ([]ListPostsFilteredRow, error)
 	ListProjects(ctx context.Context) ([]Project, error)
+	ListProjectsByOrder(ctx context.Context) ([]Project, error)
 	// sort_mode is one of "curated" (order_key ASC, the default), "newest", or
 	// "oldest" (both by created_at) — exactly one CASE branch is non-NULL for any
 	// given sort_mode, so it alone determines the effective order; id ASC is the
@@ -43,6 +44,7 @@ type Querier interface {
 	SetFeaturedProject(ctx context.Context, arg SetFeaturedProjectParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error)
 	UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error)
+	UpdateProjectOrderKey(ctx context.Context, arg UpdateProjectOrderKeyParams) error
 }
 
 var _ Querier = (*Queries)(nil)

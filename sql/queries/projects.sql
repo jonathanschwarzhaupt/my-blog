@@ -73,3 +73,9 @@ UPDATE projects SET featured_rank = NULL WHERE featured_rank IS NOT NULL;
 
 -- name: SetFeaturedProject :exec
 UPDATE projects SET featured_rank = $1 WHERE id = $2;
+
+-- name: ListProjectsByOrder :many
+SELECT * FROM projects ORDER BY order_key ASC, id ASC;
+
+-- name: UpdateProjectOrderKey :exec
+UPDATE projects SET order_key = $1 WHERE id = $2;

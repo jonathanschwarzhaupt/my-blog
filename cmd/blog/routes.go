@@ -38,6 +38,8 @@ func (app *application) routes() http.Handler {
 		mux.Handle("GET /admin", dynamic.ThenFunc(app.adminDashboard))
 		mux.Handle("GET /admin/featured", dynamic.ThenFunc(app.manageFeatured))
 		mux.Handle("POST /admin/featured", dynamic.ThenFunc(app.manageFeaturedPost))
+		mux.Handle("GET /admin/order", dynamic.ThenFunc(app.manageOrder))
+		mux.Handle("POST /admin/order", dynamic.ThenFunc(app.manageOrderPost))
 		mux.Handle("GET /admin/stats", dynamic.ThenFunc(app.stats))
 	}
 

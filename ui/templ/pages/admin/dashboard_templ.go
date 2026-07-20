@@ -49,7 +49,7 @@ func Dashboard(flash string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <h1 class=\"text-2xl font-semibold tracking-tight\">Admin</h1><ul class=\"mt-6 flex list-none flex-col gap-3 p-0 text-sm\"><li><a href=\"/posts/new\" class=\"text-primary hover:underline\">New Post</a></li><li><a href=\"/projects/new\" class=\"text-primary hover:underline\">New Project</a></li><li><a href=\"/admin/featured\" class=\"text-primary hover:underline\">Manage Featured</a></li><li><a href=\"/admin/stats\" class=\"text-primary hover:underline\">Stats</a></li></ul>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <h1 class=\"text-2xl font-semibold tracking-tight\">Admin</h1><ul class=\"mt-6 flex list-none flex-col gap-3 p-0 text-sm\"><li><a href=\"/posts/new\" class=\"text-primary hover:underline\">New Post</a></li><li><a href=\"/projects/new\" class=\"text-primary hover:underline\">New Project</a></li><li><a href=\"/admin/featured\" class=\"text-primary hover:underline\">Manage Featured</a></li><li><a href=\"/admin/order\" class=\"text-primary hover:underline\">Manage Order</a></li><li><a href=\"/admin/stats\" class=\"text-primary hover:underline\">Stats</a></li></ul>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
