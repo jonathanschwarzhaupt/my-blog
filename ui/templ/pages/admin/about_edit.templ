@@ -1,0 +1,51 @@
+package admin
+
+import (
+	"github.com/jonathanschwarzhaupt/home-blog/internal/validator"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/alert"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/button"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/label"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/textarea"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/layout"
+)
+
+// AboutEditForm has no title/tags/created-at the way a Post's edit form
+// does — those are Post-specific concepts the About page doesn't need
+// (see docs/adr/0009-about-page-db-backed-with-revision-history.md).
+type AboutEditForm struct {
+	Body                string `form:"body"`
+	validator.Validator `form:"-"`
+}
+
+templ AboutEdit(form AboutEditForm, flash string) {
+	@layout.Base("Edit About", flash) {
+		@layout.BackLink("/admin")
+		<div class="flex items-center justify-between gap-4">
+			<h1 class="text-2xl font-semibold tracking-tight">Edit About</h1>
+			<a href="/admin/about/history" class="text-sm text-primary hover:underline">History</a>
+		</div>
+		<form method="POST" action="/admin/about/edit" class="mt-6 flex flex-col gap-4">
+			if len(form.NonFieldErrors) > 0 {
+				@alert.Alert(alert.Props{Variant: alert.VariantDestructive}) {
+					@alert.Description() {
+						for _, err := range form.NonFieldErrors {
+							<p>{ err }</p>
+						}
+					}
+				}
+			}
+			<div class="flex flex-col gap-1.5">
+				@label.Label(label.Props{For: "body", Error: form.FieldErrors["body"]}) {
+					Body (Markdown)
+				}
+				@textarea.Textarea(textarea.Props{ID: "body", Name: "body", Value: form.Body, Rows: 20})
+				if err, ok := form.FieldErrors["body"]; ok {
+					<p class="text-sm text-destructive">{ err }</p>
+				}
+			</div>
+			@button.Button(button.Props{Type: button.TypeSubmit}) {
+				Save
+			}
+		</form>
+	}
+}

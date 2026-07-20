@@ -1,0 +1,103 @@
+package admin
+
+import (
+	"strconv"
+
+	"github.com/jonathanschwarzhaupt/home-blog/internal/validator"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/alert"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/button"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/components/input"
+	"github.com/jonathanschwarzhaupt/home-blog/ui/templ/layout"
+)
+
+// BlankSkillRows is how many empty rows are appended after existing skills,
+// so a new skill can be added without a JS add-row control — matching this
+// codebase's plain-server-rendered-forms convention (e.g. Manage Featured's
+// fixed slots).
+const BlankSkillRows = 5
+
+// SkillRowCountFieldName is a hidden field recording how many rows were
+// rendered, so the handler knows how many indices to read back on submit —
+// there's no other way to know the row count from a POST body alone.
+const SkillRowCountFieldName = "row_count"
+
+// SkillRow is one row of the bulk skills editor — a blank Name means "no
+// skill here" (an empty row to fill in, or one being removed).
+type SkillRow struct {
+	Category string
+	Name     string
+	Order    string
+}
+
+func SkillCategoryFieldName(i int) string { return "category_" + strconv.Itoa(i) }
+func SkillNameFieldName(i int) string     { return "name_" + strconv.Itoa(i) }
+func SkillOrderFieldName(i int) string    { return "order_" + strconv.Itoa(i) }
+
+// SkillRowKey is the validator.Validator field-error key for a whole row —
+// one combined error per row regardless of which specific input in it
+// failed, rather than juggling a separate key per field per row.
+func SkillRowKey(i int) string { return "row_" + strconv.Itoa(i) }
+
+templ ManageSkills(rows []SkillRow, v validator.Validator, flash string) {
+	@layout.Base("Manage Skills", flash) {
+		@layout.BackLink("/admin")
+		<h1 class="text-2xl font-semibold tracking-tight">Manage Skills</h1>
+		<p class="mt-1 text-sm text-muted-foreground">Shown on the About page, grouped by category — lower order shows first within a category. Leave Name blank to remove a row; use the blank rows below to add new ones.</p>
+		<form method="POST" action="/admin/skills" class="mt-6 flex flex-col gap-3">
+			if len(v.NonFieldErrors) > 0 {
+				@alert.Alert(alert.Props{Variant: alert.VariantDestructive}) {
+					@alert.Description() {
+						for _, err := range v.NonFieldErrors {
+							<p>{ err }</p>
+						}
+					}
+				}
+			}
+			<input type="hidden" name={ SkillRowCountFieldName } value={ strconv.Itoa(len(rows)) }/>
+			for i, row := range rows {
+				@skillRow(i, row, v.FieldErrors[SkillRowKey(i)])
+			}
+			@button.Button(button.Props{Type: button.TypeSubmit}) {
+				Save
+			}
+		</form>
+	}
+}
+
+templ skillRow(index int, row SkillRow, rowErr string) {
+	<div class="flex flex-col gap-1">
+		<div class="flex items-center gap-3">
+			<div class="w-48 flex-none">
+				@input.Input(input.Props{
+					ID:          SkillCategoryFieldName(index),
+					Name:        SkillCategoryFieldName(index),
+					Value:       row.Category,
+					Placeholder: "Category",
+					HasError:    rowErr != "",
+				})
+			</div>
+			<div class="flex-1">
+				@input.Input(input.Props{
+					ID:          SkillNameFieldName(index),
+					Name:        SkillNameFieldName(index),
+					Value:       row.Name,
+					Placeholder: "Skill name",
+					HasError:    rowErr != "",
+				})
+			</div>
+			<div class="w-24 flex-none">
+				@input.Input(input.Props{
+					ID:         SkillOrderFieldName(index),
+					Name:       SkillOrderFieldName(index),
+					Type:       input.TypeNumber,
+					Value:      row.Order,
+					HasError:   rowErr != "",
+					Attributes: templ.Attributes{"step": "any"},
+				})
+			</div>
+		</div>
+		if rowErr != "" {
+			<p class="text-sm text-destructive">{ rowErr }</p>
+		}
+	</div>
+}
