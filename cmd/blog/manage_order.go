@@ -46,6 +46,11 @@ func (app *application) manageOrderPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Read directly from r.PostForm rather than app.formDecoder.Decode into a
+	// struct (the pattern every other form in this codebase uses): the set
+	// of fields is dynamic, one per project, keyed by id — there's no fixed
+	// struct shape a static form tag could bind to the way FeaturedForm's
+	// three slots or ProjectEditForm's fixed fields can.
 	var v validator.Validator
 	values := make(map[int64]string, len(projects))
 	parsed := make(map[int64]float64, len(projects))
@@ -67,8 +72,11 @@ func (app *application) manageOrderPost(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Always writes every row, like manageFeaturedPost does for its slots —
-	// simpler than diffing against what actually changed, and cheap for a
-	// "few in number by design" collection.
+	// simpler than diffing against what actually changed. Not wrapped in a
+	// transaction, same reasoning as syncPostProjects (post_edit.go): a
+	// single-admin tool doesn't warrant transaction plumbing through the
+	// Querier interface for the residual risk of a mid-loop failure leaving
+	// a partial write — rare, and recoverable by just resubmitting the form.
 	for _, p := range projects {
 		if err := app.db.UpdateProjectOrderKey(ctx, database.UpdateProjectOrderKeyParams{
 			OrderKey: parsed[p.ID],
