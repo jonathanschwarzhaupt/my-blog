@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/jonathanschwarzhaupt/home-blog/compare/v0.2.0...v0.3.0) (2026-07-21)
+
+
+### Features
+
+* Add bulk Manage Order admin page for projects ([#70](https://github.com/jonathanschwarzhaupt/home-blog/issues/70)) ([06a006e](https://github.com/jonathanschwarzhaupt/home-blog/commit/06a006e0d3a057c6b08f9c4c3362944664f616ad))
+* Add edit and delete to Projects ([#64](https://github.com/jonathanschwarzhaupt/home-blog/issues/64)) ([826153b](https://github.com/jonathanschwarzhaupt/home-blog/commit/826153b47240cbf9c41c8a267eeeb40e88af6a9c))
+* Make About page editable with revision history; extract Skills into their own table ([#72](https://github.com/jonathanschwarzhaupt/home-blog/issues/72)) ([db9ef38](https://github.com/jonathanschwarzhaupt/home-blog/commit/db9ef3846188e0cdf513f82c41fa13b413ebb70b))
+
+
+### Bug Fixes
+
+* internal/vcs.Version() to report git tags instead of raw commit SHA ([#65](https://github.com/jonathanschwarzhaupt/home-blog/issues/65)) ([96e61be](https://github.com/jonathanschwarzhaupt/home-blog/commit/96e61bee752ed254177231826c8892ff0d2adb43))
+
 ## [0.2.0](https://github.com/jonathanschwarzhaupt/home-blog/compare/v0.1.0...v0.2.0) (2026-07-12)
 
 
