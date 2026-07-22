@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/jonathanschwarzhaupt/home-blog/compare/v0.3.0...v0.3.1) (2026-07-22)
+
+
+### Features
+
+* Update home.templ text ([541a25a](https://github.com/jonathanschwarzhaupt/home-blog/commit/541a25ab05827dd0d6e3c79fc424d287cf223756))
+
 ## [0.3.0](https://github.com/jonathanschwarzhaupt/home-blog/compare/v0.2.0...v0.3.0) (2026-07-21)
 
 
