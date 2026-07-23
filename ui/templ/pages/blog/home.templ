@@ -12,7 +12,7 @@ templ Home(featuredPosts []models.Post, featuredProjects []models.Project) {
 			<h1 class="text-3xl font-semibold tracking-tight">Jonathan Schwarzhaupt</h1>
 			<p class="mt-2 text-muted-foreground">
 				DevOps engineer. I write about the things I build and find interesting. Software,
-				infrastructure, and the occasional homelab tale.
+				infrastructure, things I learn and the occasional homelab tale or rant
 			</p>
 		</section>
 		if len(featuredPosts) > 0 {
@@ -49,7 +49,7 @@ templ Home(featuredPosts []models.Post, featuredProjects []models.Project) {
 			<h2 class="text-lg font-semibold tracking-tight">About</h2>
 			<p class="mt-2 text-muted-foreground">
 				DevOps Engineer in healthtech, based in Munich. With a business
-				degree, a Kubernetes cluster at home, and opinions.
+				degree and a Kubernetes cluster at home
 			</p>
 			<div class="mt-3">
 				@button.Button(button.Props{Href: "/about", Variant: button.VariantLink, Class: "px-0"}) {

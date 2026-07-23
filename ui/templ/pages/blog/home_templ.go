@@ -47,7 +47,7 @@ func Home(featuredPosts []models.Post, featuredProjects []models.Project) templ.
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section><h1 class=\"text-3xl font-semibold tracking-tight\">Jonathan Schwarzhaupt</h1><p class=\"mt-2 text-muted-foreground\">DevOps engineer. I write about the things I build — software, infrastructure, and the occasional homelab rabbit hole.</p></section>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section><h1 class=\"text-3xl font-semibold tracking-tight\">Jonathan Schwarzhaupt</h1><p class=\"mt-2 text-muted-foreground\">DevOps engineer. I write about the things I build and find interesting. Software, infrastructure, things I learn and the occasional homelab tale or rant</p></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -159,7 +159,7 @@ func Home(featuredPosts []models.Post, featuredProjects []models.Project) templ.
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <section class=\"mt-10\"><h2 class=\"text-lg font-semibold tracking-tight\">About</h2><p class=\"mt-2 text-muted-foreground\">DevOps Engineer in healthtech, based in Munich — with a business degree, a home Kubernetes cluster, and opinions about GitOps. Here's the longer story.</p><div class=\"mt-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <section class=\"mt-10\"><h2 class=\"text-lg font-semibold tracking-tight\">About</h2><p class=\"mt-2 text-muted-foreground\">DevOps Engineer in healthtech, based in Munich. With a business degree, a Kubernetes cluster at home, and opinions.</p><div class=\"mt-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
