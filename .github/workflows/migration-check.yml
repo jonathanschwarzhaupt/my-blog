@@ -3,7 +3,7 @@ name: Migration Check
 on:
   pull_request:
     types: [opened, synchronize]
-    branches: [development]
+    branches: [main]
     paths:
       - "sql/schema/**"
       - "cmd/migrate/**"

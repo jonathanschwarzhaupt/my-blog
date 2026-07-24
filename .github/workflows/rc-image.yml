@@ -1,10 +1,11 @@
-name: Dev Image
+name: RC Image
 
-# Builds once per feature, not once per issue: a development->main PR is
-# opened once a batch of smaller per-issue merges into development amounts
-# to one complete feature (opened builds it), and any further push to
-# development while that PR stays open (e.g. a fix-up merge) rebuilds it
-# (synchronize) — see docs/adr/0008-tag-based-dev-image-versioning-on-pr-to-main.md.
+# Builds once per completed story, not once per issue: a story/* branch (or a
+# standalone feature/* branch, for an issue that isn't part of a bigger
+# story) opens a PR into main once that unit of work is complete (opened
+# builds it), and any further push while that PR stays open (e.g. a fix-up
+# merge) rebuilds it (synchronize) — see
+# docs/adr/0010-retire-development-for-trunk-based-release-please.md.
 on:
   pull_request:
     types: [opened, synchronize]
@@ -12,14 +13,15 @@ on:
 
 jobs:
   build-and-push:
-    # run only if PR from development branch and this repo (no forks)
-    if: >-
-        github.event.pull_request.head.ref == 'development' &&
-        github.event.pull_request.head.repo.full_name == github.repository
+    # Same-repo PRs only (no forks) — main is the sole trunk now, so any
+    # same-repo PR into it is a legitimate release-candidate build; there's
+    # no single fixed source-branch name to check anymore (story/* branches
+    # are named per story, not a single constant).
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
-      # Needed to push the dev-image git tag created below (see ADR-0008 for
-      # why that's safe against release-please's own tag/version bookkeeping).
+      # Needed to push the rc git tag created below (see ADR-0010 for why
+      # that's safe against release-please's own tag/version bookkeeping).
       contents: write
       # release-please's dry-run reads associated-PR data via GraphQL to
       # compute the next version; it writes nothing, but that read still
@@ -30,7 +32,7 @@ jobs:
       # A pull_request event's default ref/GITHUB_SHA is GitHub's ephemeral
       # test-merge commit, not the PR's real head — checking that out (and
       # tagging/building it) would tag a commit that never actually lands in
-      # development's real history. Pin to the actual head commit instead.
+      # main's real history. Pin to the actual head commit instead.
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -50,7 +52,7 @@ jobs:
           title=$(npx --yes release-please release-pr \
             --repo-url="${{ github.repository }}" \
             --token="${{ secrets.GITHUB_TOKEN }}" \
-            --target-branch=development \
+            --target-branch=main \
             --config-file=release-please-config.json \
             --manifest-file=.release-please-manifest.json \
             --dry-run | grep '^title:')
@@ -60,7 +62,7 @@ jobs:
             exit 1
           fi
           short_sha="$(git rev-parse --short=7 HEAD)"
-          echo "dev_tag=${version}-dev.${{ github.run_number }}.${short_sha}" >> "$GITHUB_OUTPUT"
+          echo "rc_tag=${version}-rc.${{ github.run_number }}.${short_sha}" >> "$GITHUB_OUTPUT"
 
       # A real git tag (not just a Docker image tag) at the exact commit
       # being built, so internal/vcs.Version() — which reads bi.Main.Version,
@@ -68,10 +70,11 @@ jobs:
       # bare commit SHA. Created (and pushed) before the docker build steps:
       # Dockerfile.blog's COPY . . copies this checkout's .git as-is, so the
       # tag must exist locally before that copy happens for Go's VCS
-      # stamping to see it. Never cleaned up — see ADR-0008.
+      # stamping to see it. Never wrapped in an actual GitHub Release, and
+      # never cleaned up — see ADR-0010.
       - name: Tag this build
         run: |
-          tag="v${{ steps.version.outputs.dev_tag }}"
+          tag="v${{ steps.version.outputs.rc_tag }}"
           git tag "$tag"
           git push origin "$tag"
 
@@ -90,8 +93,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/jonathanschwarzhaupt/home-blog:${{ steps.version.outputs.dev_tag }}
-            ghcr.io/jonathanschwarzhaupt/home-blog:dev
+            ghcr.io/jonathanschwarzhaupt/home-blog:${{ steps.version.outputs.rc_tag }}
+            ghcr.io/jonathanschwarzhaupt/home-blog:rc
 
       - uses: docker/build-push-action@v6
         with:
@@ -100,5 +103,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/jonathanschwarzhaupt/home-blog-migrate:${{ steps.version.outputs.dev_tag }}
-            ghcr.io/jonathanschwarzhaupt/home-blog-migrate:dev
+            ghcr.io/jonathanschwarzhaupt/home-blog-migrate:${{ steps.version.outputs.rc_tag }}
+            ghcr.io/jonathanschwarzhaupt/home-blog-migrate:rc
