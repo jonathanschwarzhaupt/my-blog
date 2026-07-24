@@ -16,8 +16,20 @@ jobs:
     # Same-repo PRs only (no forks) — main is the sole trunk now, so any
     # same-repo PR into it is a legitimate release-candidate build; there's
     # no single fixed source-branch name to check anymore (story/* branches
-    # are named per story, not a single constant).
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # are named per story, not a single constant). Explicitly excludes
+    # release-please's own Release PR (branch name is always exactly
+    # "release-please--branches--main" for this repo's single-root-package
+    # config — confirmed against release-please's own BranchName class,
+    # src/util/branch-name.ts): it's a real same-repo PR against main,
+    # created via RELEASE_PLEASE_TOKEN specifically so it CAN trigger
+    # downstream workflows (see CODING_STANDARDS.md's release-please
+    # configuration note) — without this exclusion, every commit landing on
+    # main would also re-trigger a full rc build+push+tag cycle against
+    # release-please's own bookkeeping PR, which is never something anyone
+    # actually wants to test.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref != 'release-please--branches--main'
     runs-on: ubuntu-latest
     permissions:
       # Needed to push the rc git tag created below (see ADR-0010 for why

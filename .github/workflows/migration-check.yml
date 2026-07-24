@@ -3,7 +3,17 @@ name: Migration Check
 on:
   pull_request:
     types: [opened, synchronize]
-    branches: [main]
+    # No branches: filter — deliberately runs against any PR touching a
+    # migration-relevant path, regardless of target branch. With main as the
+    # sole trunk, a feature/* branch that's part of a larger story/* only
+    # ever opens a PR into that story branch, not main directly; scoping
+    # this to branches: [main] would mean a schema change introduced early
+    # in a multi-issue story wouldn't get checked against a real ephemeral
+    # Neon branch until the story's final story/*->main PR, a strictly
+    # later and less useful gate than the equivalent development-targeting
+    # check had. Running on every matching PR catches it at the earliest
+    # possible point instead, at the cost of possibly running again at the
+    # final story->main PR too — cheap for a single-operator project (ADR-0002).
     paths:
       - "sql/schema/**"
       - "cmd/migrate/**"
