@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/jonathanschwarzhaupt/home-blog/compare/v0.3.2...v0.4.0) (2026-07-24)
+
+
+### Features
+
+* add beaver icon and footer illustration ([#80](https://github.com/jonathanschwarzhaupt/home-blog/issues/80)) ([dc19ae9](https://github.com/jonathanschwarzhaupt/home-blog/commit/dc19ae981d254e2a1f2b59e7f26f8ad9eb2c79cf))
+
 ## [0.3.2](https://github.com/jonathanschwarzhaupt/home-blog/compare/v0.3.1...v0.3.2) (2026-07-23)
 
 
