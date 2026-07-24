@@ -83,7 +83,7 @@ func Base(title string, flash string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</main><footer class=\"relative mx-auto max-w-3xl space-y-3 border-t-2 border-double border-border px-4 py-6 text-center text-xs text-muted-foreground/70\"><!--\n\t\t\t\t\tPositioned so its bottom edge sits exactly on the footer's own\n\t\t\t\t\ttop border (bottom-full = bottom: 100% of this relatively\n\t\t\t\t\tpositioned footer, i.e. flush with the footer's top edge) — the\n\t\t\t\t\tbeaver appears to peek up over the real double-line rule, the\n\t\t\t\t\tsame composition as the source illustration itself. right-4\n\t\t\t\t\tmatches the footer's own px-4 padding rather than sitting flush\n\t\t\t\t\tagainst the container edge.\n\t\t\t\t--><img src=\"/static/images/beaver-lodge.png\" alt=\"\" width=\"400\" height=\"175\" class=\"absolute right-4 bottom-full w-36 select-none\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</main><footer class=\"mx-auto max-w-3xl space-y-3 border-t-2 border-double border-border px-4 py-6 text-center text-xs text-muted-foreground/70\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
