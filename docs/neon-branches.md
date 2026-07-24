@@ -13,14 +13,18 @@ the same place `BLOG_DB_DSN` has always come from for local dev (`.envrc`).
 
 ## `development`
 
+A Neon database branch — not to be confused with the git branch of the same name, which
+was retired (see `docs/adr/0010-retire-development-for-trunk-based-release-please.md`); this
+Neon branch keeps its name regardless, it just isn't tied to a git branch of the same name
+anymore.
+
 A persistent branch created off `production`, isolated from it — schema changes and
 in-progress data from the always-on admin-preview environment (the one that auto-updates
-whenever a `development`->`main` pull request is opened or gets a new push while open, per
-#44/#52/#66 and `docs/adr/0008-tag-based-dev-image-versioning-on-pr-to-main.md` — once per
-completed feature, not once per issue merged into `development`) never touch live public data.
-`cmd/migrate` runs for real against this branch as part of that deployment's own rollout,
-same init-container pattern the production deployment already uses — not just a dry-run
-check.
+whenever a PR into `main` is opened or gets a new push while open — from a `story/*` or
+standalone `feature/*` branch, per #44/#52/#66 and ADR-0010 — once per completed
+story, not once per issue) never touch live public data. `cmd/migrate` runs for real
+against this branch as part of that deployment's own rollout, same init-container pattern
+the production deployment already uses — not just a dry-run check.
 
 Its connection string is stored in 1Password (not committed anywhere in this repo, for the
 obvious reason). Use the **direct** (unpooled) endpoint, not Neon's `-pooler` connection
