@@ -1,5 +1,7 @@
 # Push a real git tag for dev-image builds, triggered by PR into main
 
+Status: superseded by ADR-0010 on the trigger context (development→main PR) and the tag-safety argument (rebase-erasure) — the candidate-build mechanism itself (real git tag, PR-triggered build) carries forward unchanged, re-grounded in ADR-0010's reasoning and renamed dev→rc.
+
 `dev-image.yml` currently builds on every push to `development`, and the running binary's version (`internal/vcs.Version()`, fixed in ADR-0007) only reports a real tag when one exists at the built commit — dev builds have never had one, so they've always shown a pseudo-version/SHA. We change two things together:
 
 **Trigger**: `push: branches: [development]` → `pull_request: types: [opened, synchronize], branches: [main]`, matching `migration-check.yml`'s existing pattern. This also serves a workflow goal independent of versioning: a `development`→`main` PR is opened once a batch of smaller per-issue merges into `development` amounts to one complete feature, so the dev image (and the homelab admin-preview deployment tracking it) refreshes once per feature, not once per issue — `opened` builds it, `synchronize` (any further push to `development` while that PR stays open, e.g. a fix-up merge) rebuilds it, with no separate trigger needed for the two cases.
